@@ -44,12 +44,3 @@ npm run dev
 
 ---
 
-## 👥 Asignación de Tareas - Sprint 1 (HE-01 & HE-02)
-
-| Desarrollador | Funcionalidad Asignada |
-| :--- | :--- |
-| **Luisa Fernanda (Líder)** | Cimientos del Monorepo, SQLite, Middlewares Auth/Roles y Dashboard Base |
-| **Cristian Javier** | HU-0201 (Login) & HU-0302 (Logout) |
-| **Juliana Andrea** | HU-0101 (Registro de Usuarios) & HU-0104 (Listado General) |
-| **Juan Camilo** | HU-0102 (Edición de Usuarios) & HU-0103 (Activar/Desactivar) |
-| **Henrry Santiago** | HU-0303 (Cambio Rápido de Cajero) & HU-0105 (Control de Vistas por Rol) |
