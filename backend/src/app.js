@@ -56,7 +56,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     app: 'Gestienda Backend API Modular',
-    database: 'SQLite (node:sqlite)',
+    database: 'SQLite (better-sqlite3)',
     timestamp: new Date().toISOString()
   });
 });
@@ -64,7 +64,7 @@ app.get('/api/health', (req, res) => {
 // 3. Inyección de Dependencias y Enrutamiento Modular (DDD)
 
 // -- Módulo Usuarios & Auth (Cristian, Juliana, Juan Camilo, Henrry)
-const usuarioRepository = new UsuarioRepository();
+const usuarioRepository = new UsuarioRepository(db);
 const authService = new AuthService(usuarioRepository);
 const usuarioService = new UsuarioService(usuarioRepository);
 const authController = new AuthController(authService);

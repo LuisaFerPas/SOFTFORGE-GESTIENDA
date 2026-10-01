@@ -8,15 +8,10 @@ export function AuthProvider({ children }) {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
-    return {
-      id: 1,
-      username: 'Administrador',
-      role: 'ADMINISTRADOR',
-      status: 'ACTIVO'
-    };
+    return null;
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem('gestienda_token') || 'demo-token-gestienda');
+  const [token, setToken] = useState(() => localStorage.getItem('gestienda_token') || null);
 
   useEffect(() => {
     if (user) {
@@ -46,30 +41,11 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('gestienda_user');
   };
 
-  const toggleDemoRole = () => {
-    if (user?.role === 'ADMINISTRADOR') {
-      setUser({
-        id: 2,
-        username: 'María López',
-        role: 'VENDEDOR',
-        status: 'ACTIVO'
-      });
-    } else {
-      setUser({
-        id: 1,
-        username: 'Administrador',
-        role: 'ADMINISTRADOR',
-        status: 'ACTIVO'
-      });
-    }
-  };
-
   const value = {
     user,
     token,
     login,
     logout,
-    toggleDemoRole,
     isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'ADMINISTRADOR',
     isVendedor: user?.role === 'VENDEDOR'

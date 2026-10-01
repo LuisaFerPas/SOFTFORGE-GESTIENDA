@@ -31,14 +31,20 @@ export function inicializarEsquema() {
     );
   `);
 
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  if (userCount === 0) {
-    const salt = bcrypt.genSaltSync(10);
-    const defaultPasswordHash = bcrypt.hashSync('admin123', salt);
-    db.prepare(`
-      INSERT INTO users (username, password_hash, role, status)
-      VALUES (?, ?, 'ADMINISTRADOR', 'ACTIVO')
-    `).run('admin', defaultPasswordHash);
-    console.log('[Database] Usuario administrador inicial creado: (admin / admin123)');
+  const usuariosSemilla = [
+    { username: 'admin1', password: 'admin123', role: 'ADMINISTRADOR' },
+    { username: 'admin2', password: 'admin123', role: 'ADMINISTRADOR' },
+    { username: 'vendedor', password: 'vendedor123', role: 'VENDEDOR' }
+  ];
+
+  const insertarUsuario = db.prepare(`
+    INSERT OR REPLACE INTO users (username, password_hash, role, status)
+    VALUES (?, ?, ?, 'ACTIVO')
+  `);
+
+  for (const usuario of usuariosSemilla) {
+    const passwordHash = bcrypt.hashSync(usuario.password, bcrypt.genSaltSync(10));
+    insertarUsuario.run(usuario.username, passwordHash, usuario.role);
+    console.log(`[Database] Usuario semilla creado: ${usuario.username} (${usuario.role})`);
   }
 }

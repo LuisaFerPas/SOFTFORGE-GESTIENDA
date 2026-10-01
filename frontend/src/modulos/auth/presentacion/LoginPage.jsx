@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, LogIn, AlertCircle } from 'lucide-react';
+import { Store, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { loginApi } from '../servicios/authService';
 
 export function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -20,7 +21,7 @@ export function LoginPage() {
     try {
       const data = await loginApi(username, password);
       login(data.data.token, data.data.user);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');
     } finally {
@@ -94,7 +95,7 @@ export function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Ej: admin o isabel"
+              placeholder="Ej: admin1, admin2 o vendedor"
               required
               style={{
                 width: '100%',
@@ -112,22 +113,42 @@ export function LoginPage() {
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#4A3B32', marginBottom: '6px' }}>
               Contraseña
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Ingresa tu contraseña"
-              required
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: '1.5px solid #F4E8DC',
-                fontSize: '0.95rem',
-                outline: 'none',
-                fontFamily: 'inherit'
-              }}
-            />
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input
+                type={mostrarPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Ingresa tu contraseña"
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px 16px 12px 40px',
+                  borderRadius: '12px',
+                  border: '1.5px solid #F4E8DC',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarPassword(!mostrarPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  color: '#6B5B51',
+                  fontSize: '0.9rem'
+                }}
+              >
+                {mostrarPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -156,7 +177,7 @@ export function LoginPage() {
         </form>
 
         <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.78rem', color: '#B58463' }}>
-          Credenciales por defecto: <strong>admin / admin123</strong>
+          Credenciales por defecto: <strong>admin1 / admin123, admin2 / admin123, vendedor / vendedor123</strong>
         </div>
       </div>
     </div>

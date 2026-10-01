@@ -22,16 +22,20 @@ gestienda/
 
 ```bash
 cd backend
+cp .env.example .env    # Copia plantilla y edita JWT_SECRET
+# nano .env             # Define JWT_SECRET (mínimo 32 caracteres)
 npm install
 npm run dev
 ```
 * Servidor escuchando en: `http://localhost:3000`
 * Salud del sistema: `http://localhost:3000/api/health`
 * Archivo de base de datos local: `backend/gestienda.db` (creado automáticamente)
-* **Credenciales por defecto:**
-  * Usuario: `admin`
-  * Contraseña: `admin123`
-  * Rol: `ADMINISTRADOR`
+* **Credenciales por defecto (seed):**
+  * `admin1` / `admin123` — ADMINISTRADOR
+  * `admin2` / `admin123` — ADMINISTRADOR
+  * `vendedor` / `vendedor123` — VENDEDOR
+
+> **Importante:** `JWT_SECRET` es obligatorio. El servidor no arrancará sin él.
 
 ### 2. Frontend (React + Vite)
 

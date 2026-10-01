@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gestienda-secret-key-don-mati-2026';
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET no configurado. Defínalo en .env');
+}
+export const JWT_SECRET = process.env.JWT_SECRET;
 
 export function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;

@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
+process.env.JWT_SECRET = 'test-secret-key-for-testing-only-32chars';
+
 import { RolUsuario, EstadoUsuario } from '../src/modulos/usuarios/dominio/RolUsuario.js';
 import { Result } from '../src/shared/Result.js';
 import { requireRole } from '../src/modulos/usuarios/presentacion/authMiddleware.js';
@@ -48,10 +51,15 @@ test('3. [Seguridad] requireRole debe permitir acceso solo a roles autorizados',
   assert.equal(nextCalled, true);
 });
 
-test('4. [Database] Base de datos SQLite debe inicializarse con el usuario admin semilla', () => {
+test('4. [Database] Base de datos SQLite debe inicializarse con los usuarios semilla', () => {
   inicializarEsquema();
-  const adminUser = db.prepare("SELECT username, role, status FROM users WHERE username = 'admin'").get();
-  assert.ok(adminUser, 'El usuario admin debe existir en la base de datos');
-  assert.equal(adminUser.role, 'ADMINISTRADOR');
-  assert.equal(adminUser.status, 'ACTIVO');
+  const admin1User = db.prepare("SELECT username, role FROM users WHERE username = 'admin1'").get();
+  const admin2User = db.prepare("SELECT username, role FROM users WHERE username = 'admin2'").get();
+  const vendedorUser = db.prepare("SELECT username, role FROM users WHERE username = 'vendedor'").get();
+  assert.ok(admin1User, 'El usuario admin1 debe existir en la base de datos');
+  assert.equal(admin1User.role, 'ADMINISTRADOR');
+  assert.ok(admin2User, 'El usuario admin2 debe existir en la base de datos');
+  assert.equal(admin2User.role, 'ADMINISTRADOR');
+  assert.ok(vendedorUser, 'El usuario vendedor debe existir en la base de datos');
+  assert.equal(vendedorUser.role, 'VENDEDOR');
 });

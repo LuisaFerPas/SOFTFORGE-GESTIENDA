@@ -32,3 +32,14 @@ logs/
 .idea/
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Base de datos específica
+gestienda.db
+*.sqlite
+*.sqlite3

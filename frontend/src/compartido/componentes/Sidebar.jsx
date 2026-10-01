@@ -84,29 +84,6 @@ export function Sidebar() {
 
       {/* Footer con Usuario y Salida */}
       <div className="sidebar-footer">
-        <button 
-          onClick={toggleDemoRole}
-          style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            color: '#FCECE4',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '4px 8px',
-            fontSize: '0.7rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            marginBottom: '12px',
-            width: '100%',
-            justifyContent: 'center'
-          }}
-          title="Alternar entre Administrador y Vendedor para probar HU-0105"
-        >
-          <Repeat size={12} />
-          <span>Ver como {isAdmin ? 'Vendedor' : 'Admin'}</span>
-        </button>
-
         <div className="user-profile">
           <div className="user-avatar">
             {initial}
