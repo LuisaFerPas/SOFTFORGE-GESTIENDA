@@ -49,7 +49,13 @@ export class AuthService {
     return Result.ok({ token, user: datosUsuario });
   }
 
+  /**
+   * HU-0203: Cambio Rápido de Cajero
+   * Autentica un nuevo usuario sin cerrar la sesión del sistema.
+   * Reutiliza exactamente la misma lógica de validación que login().
+   */
   async cambiarUsuario(nuevoUsername, nuevoPassword) {
-    // TODO: Implementar cambio rápido de cajero (HU-0303)
+    // Reutilizamos login() — valida credenciales, estado ACTIVO y genera nuevo JWT
+    return this.login(nuevoUsername, nuevoPassword);
   }
 }

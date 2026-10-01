@@ -1,9 +1,12 @@
 import React from 'react';
 import { ShoppingCart, TrendingUp, AlertTriangle, FileText } from 'lucide-react';
+import { useAuth } from '../../../compartido/contexto/AuthContext';
 
 export function TarjetasKPI() {
+  const { isAdmin } = useAuth();
+
   return (
-    <section className="kpi-grid">
+    <section className="kpi-grid" style={{ gridTemplateColumns: isAdmin ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)' }}>
       {/* KPI 1: Ventas Hoy */}
       <div className="kpi-card">
         <div className="kpi-icon-pill" style={{ backgroundColor: '#FFF2E8', color: '#FF6600' }}>
@@ -16,29 +19,33 @@ export function TarjetasKPI() {
         </div>
       </div>
 
-      {/* KPI 2: Ganancia Estimada */}
-      <div className="kpi-card">
-        <div className="kpi-icon-pill" style={{ backgroundColor: '#FFF9E6', color: '#D97706' }}>
-          <TrendingUp size={22} />
+      {/* KPI 2: Ganancia Estimada (Exclusivo Administrador) */}
+      {isAdmin && (
+        <div className="kpi-card">
+          <div className="kpi-icon-pill" style={{ backgroundColor: '#FFF9E6', color: '#D97706' }}>
+            <TrendingUp size={22} />
+          </div>
+          <div className="kpi-value">$142.200</div>
+          <div className="kpi-label">Ganancia estimada</div>
+          <div style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
+            ↑ 12% vs ayer
+          </div>
         </div>
-        <div className="kpi-value">$142.200</div>
-        <div className="kpi-label">Ganancia estimada</div>
-        <div style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-          ↑ 12% vs ayer
-        </div>
-      </div>
+      )}
 
-      {/* KPI 3: Stock Bajo */}
-      <div className="kpi-card">
-        <div className="kpi-icon-pill" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>
-          <AlertTriangle size={22} />
+      {/* KPI 3: Stock Bajo (Exclusivo Administrador - HU-0105: Vendedor no puede ver cantidades de stock) */}
+      {isAdmin && (
+        <div className="kpi-card">
+          <div className="kpi-icon-pill" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>
+            <AlertTriangle size={22} />
+          </div>
+          <div className="kpi-value" style={{ color: '#DC2626' }}>7 productos</div>
+          <div className="kpi-label">Stock bajo</div>
+          <div style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 700, marginTop: '2px' }}>
+            Requieren reposición
+          </div>
         </div>
-        <div className="kpi-value" style={{ color: '#DC2626' }}>7 productos</div>
-        <div className="kpi-label">Stock bajo</div>
-        <div style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 700, marginTop: '2px' }}>
-          Requieren reposición
-        </div>
-      </div>
+      )}
 
       {/* KPI 4: Apartados Activos */}
       <div className="kpi-card">

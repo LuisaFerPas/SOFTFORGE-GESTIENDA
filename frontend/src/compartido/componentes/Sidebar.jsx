@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Store, 
@@ -12,10 +12,12 @@ import {
   Repeat
 } from 'lucide-react';
 import { useAuth } from '../contexto/AuthContext';
+import { CambioUsuarioModal } from '../../modulos/auth/presentacion/CambioUsuarioModal';
 
 export function Sidebar() {
-  const { user, logout, isAdmin, toggleDemoRole } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -46,10 +48,13 @@ export function Sidebar() {
             <span>Inicio</span>
           </NavLink>
 
-          <NavLink to="/inventario" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            <Package size={18} />
-            <span>Inventario</span>
-          </NavLink>
+          {/* Menú Inventario: Exclusivo de Administrador (HU-0105) */}
+          {isAdmin && (
+            <NavLink to="/inventario" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <Package size={18} />
+              <span>Inventario</span>
+            </NavLink>
+          )}
 
           <NavLink to="/ventas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <ShoppingCart size={18} />
@@ -94,11 +99,29 @@ export function Sidebar() {
           </div>
         </div>
 
+        {/* Botón Cambio Rápido de Cajero (HU-0203) */}
+        <button
+          onClick={() => setModalAbierto(true)}
+          className="logout-button"
+          style={{ marginBottom: '6px' }}
+          title="Cambiar de cajero sin cerrar sesión"
+        >
+          <Repeat size={16} />
+          <span>Cambiar cajero</span>
+        </button>
+
         <button onClick={handleLogout} className="logout-button">
           <LogOut size={16} />
           <span>Cerrar sesión</span>
         </button>
       </div>
+
+      {/* Modal de Cambio Rápido de Cajero (HU-0203) */}
+      <CambioUsuarioModal
+        isOpen={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+      />
     </aside>
   );
 }
+

@@ -25,12 +25,13 @@ export function App() {
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/inventario" element={<InventarioPage />} />
+              {/* Rutas accesibles para todos los roles autenticados */}
               <Route path="/ventas" element={<VentasPage />} />
               <Route path="/apartados" element={<ApartadosPage />} />
 
               {/* Rutas exclusivas para el Administrador (HU-0105) */}
               <Route element={<ProtectedRoute allowedRoles={['ADMINISTRADOR']} />}>
+                <Route path="/inventario" element={<InventarioPage />} />
                 <Route path="/usuarios" element={<UsuariosPage />} />
               </Route>
             </Route>

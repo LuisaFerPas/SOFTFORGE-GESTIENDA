@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-testing-only-32chars';
+
 import { inicializarEsquema } from '../src/infraestructura/database/esquema.js';
 import { db } from '../src/infraestructura/database/conexion.js';
 import { UsuarioRepository } from '../src/modulos/usuarios/dominio/UsuarioRepository.js';
@@ -66,3 +69,24 @@ test('5. Login fallido: usuario inactivo', async () => {
   const resultado = await service.login('admin1', 'admin123');
   assert.ok(resultado.isFailure, 'Debería fallar con usuario inactivo');
 });
+
+test('6. [HU-0203] Cambio rápido de usuario exitoso con vendedor', async () => {
+  inicializarEsquema();
+  const repo = new UsuarioRepository(db);
+  const service = new AuthService(repo);
+  const resultado = await service.cambiarUsuario('vendedor', 'vendedor123');
+  assert.ok(resultado.isSuccess, 'Debería cambiar de usuario exitosamente');
+  const { token, user } = resultado.getValue();
+  assert.ok(token, 'Debe devolver un JWT válido');
+  assert.equal(user.username, 'vendedor');
+  assert.equal(user.role, 'VENDEDOR');
+});
+
+test('7. [HU-0203] Cambio rápido de usuario fallido con credenciales erróneas', async () => {
+  inicializarEsquema();
+  const repo = new UsuarioRepository(db);
+  const service = new AuthService(repo);
+  const resultado = await service.cambiarUsuario('vendedor', 'claveMala');
+  assert.ok(resultado.isFailure, 'Debería fallar con clave incorrecta');
+  assert.equal(resultado.error, 'Usuario o contraseña inválidos');
+});

@@ -41,11 +41,22 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('gestienda_user');
   };
 
+  /**
+   * HU-0203: Cambio Rápido de Cajero
+   * Reemplaza token y usuario en el contexto global sin pasar por /login.
+   * El backend ya validó las credenciales; aquí solo actualizamos el estado.
+   */
+  const cambiarUsuario = (nuevoToken, nuevoUsuario) => {
+    setToken(nuevoToken);
+    setUser(nuevoUsuario);
+  };
+
   const value = {
     user,
     token,
     login,
     logout,
+    cambiarUsuario,
     isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'ADMINISTRADOR',
     isVendedor: user?.role === 'VENDEDOR'

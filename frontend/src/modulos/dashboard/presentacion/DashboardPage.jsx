@@ -7,7 +7,7 @@ import { PanelStockBajo } from './PanelStockBajo';
 import { PanelVentasRecientes } from './PanelVentasRecientes';
 
 export function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const today = new Date();
@@ -20,7 +20,7 @@ export function DashboardPage() {
       {/* Header de Bienvenida */}
       <header className="dashboard-header">
         <h1 className="header-title">
-          ¡Buen día, {user?.username || 'Administrador'}!
+          ¡Buen día, {user?.username || (isAdmin ? 'Administrador' : 'Vendedor')}!
         </h1>
         <p className="header-subtitle">
           {capitalizedDate} · Resumen del día
@@ -34,23 +34,28 @@ export function DashboardPage() {
           <span>Nueva venta</span>
         </button>
 
-        <button className="btn-outline" onClick={() => navigate('/inventario')}>
-          <Package size={18} />
-          <span>Agregar producto</span>
-        </button>
+        {/* Acciones exclusivas de Administrador (HU-0105) */}
+        {isAdmin && (
+          <button className="btn-outline" onClick={() => navigate('/inventario')}>
+            <Package size={18} />
+            <span>Agregar producto</span>
+          </button>
+        )}
 
-        <button className="btn-outline" onClick={() => navigate('/estadisticas')}>
-          <BarChart2 size={18} />
-          <span>Ver reportes</span>
-        </button>
+        {isAdmin && (
+          <button className="btn-outline" onClick={() => navigate('/estadisticas')}>
+            <BarChart2 size={18} />
+            <span>Ver reportes</span>
+          </button>
+        )}
       </div>
 
-      {/* Grid de 4 Tarjetas KPI */}
+      {/* Grid de Tarjetas KPI */}
       <TarjetasKPI />
 
-      {/* Paneles Inferiores: Stock bajo y Ventas recientes */}
-      <section className="bottom-grid">
-        <PanelStockBajo />
+      {/* Paneles Inferiores: Stock bajo (solo admin - HU-0105) y Ventas recientes */}
+      <section className="bottom-grid" style={{ gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr' }}>
+        {isAdmin && <PanelStockBajo />}
         <PanelVentasRecientes />
       </section>
     </div>
