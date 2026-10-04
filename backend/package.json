@@ -6,10 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "rebuild": "npm rebuild better-sqlite3",
-    "dev": "npm run rebuild && node --watch src/server.js",
-    "test": "node --env-file=.env --test tests/*.test.js",
-    "postinstall": "npm rebuild better-sqlite3"
+    "dev": "node --watch src/server.js",
+    "test": "node --env-file=.env --test tests/*.test.js"
   },
   "keywords": [
     "gestienda",
@@ -22,7 +20,6 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
