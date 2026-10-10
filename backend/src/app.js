@@ -74,7 +74,7 @@ app.use('/api/auth', crearAuthRoutes(authController));
 app.use('/api/usuarios', crearUsuarioRoutes(usuarioController));
 
 // -- Módulo Inventario
-const productoRepository = new ProductoRepository();
+const productoRepository = new ProductoRepository(db);
 const productoService = new ProductoService(productoRepository);
 const stockService = new StockService(productoRepository);
 const productoController = new ProductoController(productoService, stockService);
