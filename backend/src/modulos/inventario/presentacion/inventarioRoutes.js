@@ -4,16 +4,49 @@ import { verifyToken, requireRole } from '../../usuarios/presentacion/authMiddle
 export function crearInventarioRoutes(productoController) {
   const router = Router();
 
+  // Todas las rutas de inventario requieren token activo
   router.use(verifyToken);
 
+  // Listar productos (con filtro de stock por rol HU-0607)
   router.get('/productos', (req, res) => productoController.listar(req, res));
-  router.get('/stock-bajo', requireRole(['ADMINISTRADOR']), (req, res) => productoController.obtenerStockBajo(req, res));
 
-  // Rutas exclusivas de Administrador
-  router.post('/productos', requireRole(['ADMINISTRADOR']), (req, res) => productoController.registrar(req, res));
-  router.put('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) => productoController.editar(req, res));
-  router.delete('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) => productoController.eliminar(req, res));
-  router.post('/stock/entradas', requireRole(['ADMINISTRADOR']), (req, res) => productoController.registrarEntrada(req, res));
+  // Buscar producto por código de barras o código interno
+  router.get('/productos/codigo/:codigo', (req, res) => productoController.obtenerPorCodigo(req, res));
+
+  // Consultar producto por ID
+  router.get('/productos/:id', (req, res) => productoController.obtenerPorId(req, res));
+
+  // HU-0607: Consultar stock actual (Exclusivo Administrador)
+  router.get('/productos/:id/stock', requireRole(['ADMINISTRADOR']), (req, res) =>
+    productoController.consultarStock(req, res)
+  );
+
+  // HU-0604: Consultar alertas de stock bajo y agotados (Exclusivo Administrador)
+  router.get('/alertas', requireRole(['ADMINISTRADOR']), (req, res) =>
+    productoController.obtenerAlertas(req, res)
+  );
+
+  // Endpoints mutacionales para compañeros (Santiago / Juliana)
+  router.post('/productos', requireRole(['ADMINISTRADOR']), (req, res) => {
+    if (typeof productoController.registrar === 'function') {
+      return productoController.registrar(req, res);
+    }
+    res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
+  });
+
+  router.put('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) => {
+    if (typeof productoController.editar === 'function') {
+      return productoController.editar(req, res);
+    }
+    res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
+  });
+
+  router.delete('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) => {
+    if (typeof productoController.eliminar === 'function') {
+      return productoController.eliminar(req, res);
+    }
+    res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
+  });
 
   return router;
 }
