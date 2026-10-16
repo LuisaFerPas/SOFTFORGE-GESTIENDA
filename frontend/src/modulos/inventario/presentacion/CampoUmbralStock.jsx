@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AlertCircle, HelpCircle } from 'lucide-react';
 import { validarUmbral } from '../utilidades/validarUmbral.js';
 
 export function CampoUmbralStock({ value = '', onChange, error: errorProp, disabled = false }) {
-  const [errorLocal, setErrorLocal] = useState(null);
   const validation = validarUmbral(value);
   const error = errorProp ?? (validation.valido ? null : validation.error);
 
   const handleChange = (e) => {
     const raw = e.target.value;
     onChange(raw === '' ? '' : Number(raw)); // Emite '' (vacío) o número
-    setErrorLocal(validation.error);
   };
 
   return (

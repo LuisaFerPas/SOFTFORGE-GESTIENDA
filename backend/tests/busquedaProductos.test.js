@@ -2,8 +2,6 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert';
 import { DatabaseSync } from 'node:sqlite';
 import { SQLiteProductoRepository } from '../src/modulos/inventario/infraestructura/persistencia/SQLiteProductoRepository.js';
-import { Producto } from '../src/modulos/inventario/dominio/Producto.js';
-import { ProductoMapper } from '../src/modulos/inventario/infraestructura/persistencia/mappers/ProductoMapper.js';
 
 // Setup idéntico a inventario_base.test.js
 const createTestDb = () => {
@@ -69,12 +67,13 @@ test('código interno en minúsculas → encuentra', async () => {
 
 test('parcial código interno → encuentra', async () => {
   const res = await repo.listarTodos({ search: 'JUG-00' });
-  assert.equal(res.length, 3); // JUG-001, JUG-002, JUG-003
+  assert.equal(res.length, 2); // JUG-001, JUG-002 (JUG-003 está inactivo)
 });
 
 test('ignora tildes: "jabon" = "Jabón"', async () => {
   const res = await repo.listarTodos({ search: 'jabon' });
-  assert.equal(res.length, 3); // Jabón Rey Limón, Jabón Rey Fresa, Jabón Neutro
+  assert.equal(res.length, 2); // Jabón Rey Limón, Jabón Rey Fresa (Jabón Neutro está inactivo)
+  assert.ok(res.every((p) => p.activo === 1));
 });
 
 test('ignora mayúsculas: "PIÑATERIA" = "Piñatería"', async () => {
@@ -109,13 +108,20 @@ test('orden: código exacto primero', async () => {
 
 test('no devuelve inactivos (activo=0)', async () => {
   const res = await repo.listarTodos({ search: 'Jabón' });
-  // JUG-003 está inactivo
-  const activos = res.filter(p => p.activo === 1);
-  assert.equal(activos.length, 2);
+  // JUG-003 "Jabón Neutro" está inactivo (activo = 0)
+  assert.equal(res.length, 2);
+  assert.ok(res.every((p) => p.activo === 1));
+  assert.ok(!res.some((p) => p.codigoInterno === 'JUG-003'));
+});
+
+test('sin filtros no devuelve inactivos', async () => {
+  const res = await repo.listarTodos();
+  assert.ok(res.every((p) => p.activo === 1));
+  assert.ok(!res.some((p) => p.codigoInterno === 'JUG-003'));
 });
 
 test('combinado con categoria y estadoStock', async () => {
-  const res = await repo.listarTodos({ search: 'jabon', categoria: 'ASEO', estadoStock: 'bajo' });
+  const res = await repo.listarTodos({ search: 'jabon', categoria: 'ASEO', estadoStock: 'STOCK_BAJO' });
   // Solo Jabón Rey Fresa (stock 5 <= min 10)
   assert.equal(res.length, 1);
   assert.equal(res[0].nombre, 'Jabón Rey Fresa');

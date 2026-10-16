@@ -47,7 +47,7 @@ export class SQLiteProductoRepository extends IProductoRepository {
   }
 
    async listarTodos(filtros = {}) {
-     const condiciones = [];
+     const condiciones = ['activo = 1'];
      const parametros = [];
      let orden = 'nombre ASC';
      let parametrosOrden = [];
@@ -66,11 +66,11 @@ export class SQLiteProductoRepository extends IProductoRepository {
        parametrosOrden = b.parametrosOrden;
      }
 
-     if (filtros.estadoStock === 'bajo') {
+     if (filtros.estadoStock === 'STOCK_BAJO') {
        condiciones.push('stock_actual > 0 AND stock_actual <= stock_minimo_alerta');
-     } else if (filtros.estadoStock === 'agotado') {
+     } else if (filtros.estadoStock === 'AGOTADO') {
        condiciones.push('stock_actual <= 0');
-     } else if (filtros.estadoStock === 'con_stock') {
+     } else if (filtros.estadoStock === 'CON_STOCK') {
        condiciones.push('stock_actual > 0');
      }
 

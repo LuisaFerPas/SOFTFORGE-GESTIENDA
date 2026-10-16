@@ -4,6 +4,7 @@ import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { TablaProductos } from './TablaProductos';
 import { BuscadorProductos } from './BuscadorProductos';
 import { useBusquedaProductos } from '../hooks/useBusquedaProductos';
+import './catalogo.css';
 
 export function InventarioPage() {
   const { user } = useAuth();
@@ -37,9 +38,20 @@ export function InventarioPage() {
   );
 
   // Manejar producto encontrado exactamente por el escáner
-  const manejarProductoEncontrado = (producto) => {
+  const manejarProductoEncontrado = useCallback((producto) => {
     console.log('Producto encontrado exactamente:', producto);
-  };
+  }, []);
+
+  // Búsqueda inmediata (escáner/Enter): si hay un único resultado, avisarlo
+  const manejarBusquedaInmediata = useCallback(
+    async (termino) => {
+      const data = await buscarProductos(termino);
+      if (Array.isArray(data) && data.length === 1) {
+        manejarProductoEncontrado(data[0]);
+      }
+    },
+    [buscarProductos, manejarProductoEncontrado]
+  );
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -280,7 +292,7 @@ export function InventarioPage() {
              <div style={{ flex: 1, minWidth: 0 }}>
                <BuscadorProductos 
                  onBuscar={manejarBusqueda} 
-                 onBuscarInmediato={buscarProductos}
+                 onBuscarInmediato={manejarBusquedaInmediata}
                  onProductoEncontrado={manejarProductoEncontrado}
                  placeholder="Buscar por código o nombre..."
                />

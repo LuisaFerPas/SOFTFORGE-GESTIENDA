@@ -15,18 +15,20 @@ export function useBusquedaProductos() {
     try {
       const res = await listarProductosApi({ search: termino });
       // Ignorar respuestas viejas
-      if (requestId !== requestIdRef.current) return;
-      
+      if (requestId !== requestIdRef.current) return undefined;
+
       if (res.success) {
         setItems(res.data);
-      } else {
-        setError(res.message);
-        setItems([]);
+        return res.data;
       }
+      setError(res.message);
+      setItems([]);
+      return [];
     } catch (e) {
-      if (requestId !== requestIdRef.current) return;
+      if (requestId !== requestIdRef.current) return undefined;
       setError(e.message);
       setItems([]);
+      return [];
     } finally {
       if (requestId === requestIdRef.current) setCargando(false);
     }

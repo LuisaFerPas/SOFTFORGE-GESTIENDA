@@ -29,8 +29,14 @@ export function BuscadorProductos({ onBuscar, onBuscarInmediato, onProductoEncon
       e.preventDefault();
       const texto = buffer || termino;
       if (texto.trim()) {
-        (onBuscarInmediato || onBuscar)(texto.trim());
-        // Nota: La lógica de "un resultado exacto" se maneja en el padre via el resultado
+        // Escaneo de pistola: buffer largo capturado en ráfaga → búsqueda inmediata.
+        // Enter manual (pocas teclas) → búsqueda normal con debounce.
+        const esEscaneo = buffer.length >= 6;
+        if (esEscaneo) {
+          (onBuscarInmediato || onBuscar)(texto.trim());
+        } else {
+          (onBuscar || onBuscarInmediato)(texto.trim());
+        }
       }
       setBuffer('');
       setTermino('');
