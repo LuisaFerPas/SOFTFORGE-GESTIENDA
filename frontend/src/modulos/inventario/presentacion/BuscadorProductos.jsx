@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
 
-export function BuscadorProductos({ onBuscar, onProductoEncontrado, placeholder = 'Buscar por código o nombre...' }) {
+export function BuscadorProductos({ onBuscar, onBuscarInmediato, onProductoEncontrado, placeholder = 'Buscar por código o nombre...' }) {
   const [termino, setTermino] = useState('');
   const [ultimaTecla, setUltimaTecla] = useState(0);
   const [buffer, setBuffer] = useState('');
@@ -29,8 +29,8 @@ export function BuscadorProductos({ onBuscar, onProductoEncontrado, placeholder 
       e.preventDefault();
       const texto = buffer || termino;
       if (texto.trim()) {
-        onBuscar(texto.trim());
-        // Nota: La lógica de "un resultado exacto" se maneja en el padre via el resultado de onBuscar
+        (onBuscarInmediato || onBuscar)(texto.trim());
+        // Nota: La lógica de "un resultado exacto" se maneja en el padre via el resultado
       }
       setBuffer('');
       setTermino('');
@@ -48,7 +48,7 @@ export function BuscadorProductos({ onBuscar, onProductoEncontrado, placeholder 
   const limpiar = () => {
     setTermino('');
     setBuffer('');
-    onBuscar('');
+    (onBuscarInmediato || onBuscar)('');
     enfocar();
   };
 

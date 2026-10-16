@@ -1,56 +1,45 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Package, Plus, ArrowDownToLine, AlertTriangle, Layers, Search, ShieldCheck } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Plus, ArrowDownToLine, AlertTriangle, Layers, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { TablaProductos } from './TablaProductos';
-import { useBusquedaProductos } from './hooks/useBusquedaProductos';
+import { BuscadorProductos } from './BuscadorProductos';
+import { useBusquedaProductos } from '../hooks/useBusquedaProductos';
 
 export function InventarioPage() {
   const { user } = useAuth();
   const [tabActiva, setTabActiva] = useState('catalogo'); // 'catalogo' | 'entradas' | 'alertas'
   const esAdmin = user?.role === 'ADMINISTRADOR';
-  
-  // Estado para el catálogo de productos
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState(null);
-  const recargarClave = useRef(0);
-  
-  // Hook para búsqueda de productos
-  const { items: itemsBusqueda, cargando: cargandoBusqueda, error: errorBusqueda, buscar: buscarProductos, buscarConDebounce } = useBusquedaProductos();
-  
-  // Sincronizar resultados de búsqueda con estado local
+
+  // Hook que maneja estado, debounce y peticiones
+  const {
+    items: productos,
+    cargando,
+    error,
+    buscar: buscarProductos,
+    buscarConDebounce
+  } = useBusquedaProductos();
+
+  // Carga inicial del catálogo
   useEffect(() => {
-    if (!cargandoBusqueda && !errorBusqueda) {
-      setProductos(itemsBusqueda);
-      setError(null);
-    }
-  }, [itemsBusqueda, cargandoBusqueda, errorBusqueda]);
-  
-  // Manejar producto encontrado (cuando la búsqueda devuelve exactamente 1 resultado)
-  const manejarProductoEncontrado = (producto) => {
-    // Aquí se podría abrir automáticamente el modal de edición o mostrar notificación
-    console.log('Producto encontrado exactamente:', producto);
-    // Por ahora solo lo logueamos; Santiago puede implementar la lógica real
-  };
-  
-  // Función para cargar productos (llamada al montar y al reintentar)
-  const cargarProductos = useCallback(async () => {
-    setCargando(true);
-    setError(null);
-    try {
-      // Forzar actualización invalidando el caché del hook
-      await buscarProductos(''); // Búsqueda vacía para obtener todos
-      // El hook ya maneja el estado de cargando y error
-    } catch (err) {
-      setError(err.message);
-      setCargando(false);
-    }
+    buscarProductos('');
   }, [buscarProductos]);
-  
-  // Efecto inicial para cargar productos
-  useEffect(() => {
-    cargarProductos();
-  }, [cargarProductos]);
+
+  // Búsqueda con debounce al teclear en el buscador
+  const manejarBusqueda = useCallback(
+    (termino) => buscarConDebounce(termino),
+    [buscarConDebounce]
+  );
+
+  // Recarga manual (botón reintentar / tras crear/editar/eliminar)
+  const recargar = useCallback(
+    (termino = '') => buscarProductos(termino),
+    [buscarProductos]
+  );
+
+  // Manejar producto encontrado exactamente por el escáner
+  const manejarProductoEncontrado = (producto) => {
+    console.log('Producto encontrado exactamente:', producto);
+  };
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -290,7 +279,8 @@ export function InventarioPage() {
            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
              <div style={{ flex: 1, minWidth: 0 }}>
                <BuscadorProductos 
-                 onBuscar={buscarProductos} 
+                 onBuscar={manejarBusqueda} 
+                 onBuscarInmediato={buscarProductos}
                  onProductoEncontrado={manejarProductoEncontrado}
                  placeholder="Buscar por código o nombre..."
                />
@@ -301,7 +291,7 @@ export function InventarioPage() {
              productos={productos}
              cargando={cargando}
              error={error}
-             onReintentar={cargarProductos}
+             onReintentar={() => recargar()}
              onEditar={(p) => {
                // Placeholder - Santiago implementará esto
                console.log('Editar producto:', p);
@@ -312,7 +302,6 @@ export function InventarioPage() {
                console.log('Eliminar producto:', p);
                // confirmarBaja(p); 
              }}
-             recargarClave={recargarClave}
            />
          </>
        )}

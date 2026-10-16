@@ -15,14 +15,8 @@ export function TablaProductos({
   error = null, 
   onReintentar,
   onEditar, 
-  onEliminar, 
-  recargarClave 
+  onEliminar 
 }) {
-  // Efecto para recargar cuando cambia la clave (aunque el padre maneja la recarga real)
-  useEffect(() => {
-    // El padre maneja la recarga real; esto es solo para UI
-  }, [recargarClave]);
-
   if (cargando) {
     return (
       <div className="tabla-estado carga" style={{ 
@@ -179,10 +173,9 @@ export function TablaProductos({
           {productos.map((p) => (
             <tr 
               key={p.id} 
-              className={p.estaAgotado ? 'agotado' : p.tieneStockBajo ? 'stock-bajo' : ''}
+              className={`fila-producto ${p.estaAgotado ? 'agotado' : p.tieneStockBajo ? 'stock-bajo' : ''}`}
               style={{ 
-                background: p.estaAgotado ? '#fff0f0' : p.tieneStockBajo ? '#fffdf0' : 'transparent',
-                '&:hover': { background: 'var(--color-hover, #f5f5f5)' }
+                background: p.estaAgotado ? '#fff0f0' : p.tieneStockBajo ? '#fffdf0' : 'transparent'
               }}
             >
               <td className="col-codigo" style={{ 
@@ -288,8 +281,7 @@ export function TablaProductos({
               {tieneStock && (
                 <td className="col-min" style={{ 
                   padding: '0.5rem 0.75rem', 
-                  textAlign: 'center', 
-                  p: '0' 
+                  textAlign: 'center' 
                 }}>
                   {p.stockMinimoAlerta}
                 </td>
@@ -311,11 +303,7 @@ export function TablaProductos({
                       padding: '0.25rem',
                       borderRadius: '0.25rem',
                       color: 'var(--color-texto-secundario, #666)',
-                      transition: 'background 0.15s, color 0.15s',
-                      '&:hover': { 
-                        background: 'var(--color-hover, #e0e0e0)', 
-                        color: 'var(--color-primario, #e67e22)' 
-                      }
+                      transition: 'background 0.15s, color 0.15s'
                     }}
                   >
                     <Edit size={16} />
@@ -333,11 +321,7 @@ export function TablaProductos({
                       padding: '0.25rem',
                       borderRadius: '0.25rem',
                       color: 'var(--color-texto-secundario, #666)',
-                      transition: 'background 0.15s, color 0.15s',
-                      '&:hover': { 
-                        background: 'var(--color-hover, #e0e0e0)', 
-                        color: 'var(--color-error, #e74c3c)' 
-                      }
+                      transition: 'background 0.15s, color 0.15s'
                     }}
                   >
                     <Trash2 size={16} />
