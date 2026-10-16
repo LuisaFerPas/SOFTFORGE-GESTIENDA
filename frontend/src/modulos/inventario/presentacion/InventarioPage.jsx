@@ -1,11 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Package, Plus, ArrowDownToLine, AlertTriangle, Layers, Search, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
+import { TablaProductos } from './TablaProductos';
+import { useBusquedaProductos } from './hooks/useBusquedaProductos';
 
 export function InventarioPage() {
   const { user } = useAuth();
   const [tabActiva, setTabActiva] = useState('catalogo'); // 'catalogo' | 'entradas' | 'alertas'
   const esAdmin = user?.role === 'ADMINISTRADOR';
+  
+  // Estado para el catálogo de productos
+  const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+  const recargarClave = useRef(0);
+  
+  // Hook para búsqueda de productos
+  const { items: itemsBusqueda, cargando: cargandoBusqueda, error: errorBusqueda, buscar: buscarProductos, buscarConDebounce } = useBusquedaProductos();
+  
+  // Sincronizar resultados de búsqueda con estado local
+  useEffect(() => {
+    if (!cargandoBusqueda && !errorBusqueda) {
+      setProductos(itemsBusqueda);
+      setError(null);
+    }
+  }, [itemsBusqueda, cargandoBusqueda, errorBusqueda]);
+  
+  // Manejar producto encontrado (cuando la búsqueda devuelve exactamente 1 resultado)
+  const manejarProductoEncontrado = (producto) => {
+    // Aquí se podría abrir automáticamente el modal de edición o mostrar notificación
+    console.log('Producto encontrado exactamente:', producto);
+    // Por ahora solo lo logueamos; Santiago puede implementar la lógica real
+  };
+  
+  // Función para cargar productos (llamada al montar y al reintentar)
+  const cargarProductos = useCallback(async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      // Forzar actualización invalidando el caché del hook
+      await buscarProductos(''); // Búsqueda vacía para obtener todos
+      // El hook ya maneja el estado de cargando y error
+    } catch (err) {
+      setError(err.message);
+      setCargando(false);
+    }
+  }, [buscarProductos]);
+  
+  // Efecto inicial para cargar productos
+  useEffect(() => {
+    cargarProductos();
+  }, [cargarProductos]);
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -163,53 +208,114 @@ export function InventarioPage() {
         )}
       </div>
 
-      {/* Contenido según la pestaña seleccionada */}
-      {tabActiva === 'catalogo' && (
-        <div className="panel-card" style={{ padding: '32px' }}>
-          <div style={{
-            backgroundColor: '#FFFDF7',
-            border: '1.5px dashed #E0975F',
-            borderRadius: '16px',
-            padding: '36px 24px',
-            textAlign: 'center',
-            color: '#532009'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              backgroundColor: '#FFF0E5',
-              color: '#FF6600',
-              borderRadius: '16px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <Package size={32} />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 8px 0', color: '#2B1810' }}>
-              Base del Catálogo Lista para Integración
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#877468', maxWidth: '600px', margin: '0 auto 20px auto', lineHeight: '1.5' }}>
-              {esAdmin 
-                ? 'Espacio configurado para que Santiago y Javier conecten el Modal de Producto (HU-0501, HU-0502), el Buscador Dual (HU-0504) y la Tabla interactiva.'
-                : 'En modo Vendedor, los productos se mostrarán con precios de venta e IVA, pero las cantidades de stock y costos permanecerán ocultos por regla de seguridad (HU-0607).'
-              }
-            </p>
-            <div style={{ display: 'inline-flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.78rem', backgroundColor: '#F4E8DC', padding: '6px 12px', borderRadius: '8px', fontWeight: 700, color: '#532009' }}>
-                🏷️ 5 Categorías Fijas
-              </span>
-              <span style={{ fontSize: '0.78rem', backgroundColor: '#F4E8DC', padding: '6px 12px', borderRadius: '8px', fontWeight: 700, color: '#532009' }}>
-                ⚡ SQLite Transaccional
-              </span>
-              <span style={{ fontSize: '0.78rem', backgroundColor: '#F4E8DC', padding: '6px 12px', borderRadius: '8px', fontWeight: 700, color: '#532009' }}>
-                🔒 RBAC HU-0607 Activo
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+       {/* Contenido según la pestaña seleccionada */}
+       {tabActiva === 'catalogo' && (
+         <>
+           <div className="panel-header" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+             <div>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                 <h1 className="header-title" style={{ fontSize: '1.75rem', margin: 0 }}>
+                   Catálogo de Productos
+                 </h1>
+                 <span style={{
+                   fontSize: '0.75rem',
+                   fontWeight: 700,
+                   padding: '4px 10px',
+                   borderRadius: '20px',
+                   backgroundColor: esAdmin ? '#FEF3C7' : '#E0F2FE',
+                   color: esAdmin ? '#92400E' : '#0369A1',
+                   display: 'inline-flex',
+                   alignItems: 'center',
+                   gap: '4px'
+                 }}>
+                   <ShieldCheck size={14} />
+                   {esAdmin ? 'Vista Administrador' : 'Vista Vendedor (Stock Protegido)'}
+                 </span>
+               </div>
+               <p style={{ color: '#877468', fontSize: '0.9rem', margin: 0 }}>
+                 Catálogo general, reabastecimiento y control de existencias · Variedades Don Mati
+               </p>
+             </div>
+             
+             {/* Botones de Acción (Solo Administrador) */}
+             {esAdmin && (
+               <div style={{ display: 'flex', gap: '10px' }}>
+                 <button
+                   onClick={() => setTabActiva('entradas')}
+                   className="btn-secondary"
+                   style={{
+                     display: 'inline-flex',
+                     alignItems: 'center',
+                     gap: '8px',
+                     padding: '10px 16px',
+                     borderRadius: '12px',
+                     border: '1.5px solid #D4A373',
+                     backgroundColor: '#FFFDF7',
+                     color: '#532009',
+                     fontWeight: 700,
+                     fontSize: '0.88rem',
+                     cursor: 'pointer'
+                   }}
+                 >
+                   <ArrowDownToLine size={18} />
+                   <span>+ Entrada de Stock</span>
+                 </button>
+                 
+                 <button
+                   onClick={() => setTabActiva('catalogo')}
+                   className="btn-primary"
+                   style={{
+                     display: 'inline-flex',
+                     alignItems: 'center',
+                     gap: '8px',
+                     padding: '10px 18px',
+                     borderRadius: '12px',
+                     backgroundColor: '#FF6600',
+                     color: 'white',
+                     border: 'none',
+                     fontWeight: 700,
+                     fontSize: '0.88rem',
+                     cursor: 'pointer',
+                     boxShadow: '0 4px 14px rgba(255, 102, 0, 0.25)'
+                   }}
+                 >
+                   <Plus size={18} />
+                   <span>+ Nuevo Producto</span>
+                 </button>
+               </div>
+             )}
+           </div>
+           
+           {/* Buscador y Tabla */}
+           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+             <div style={{ flex: 1, minWidth: 0 }}>
+               <BuscadorProductos 
+                 onBuscar={buscarProductos} 
+                 onProductoEncontrado={manejarProductoEncontrado}
+                 placeholder="Buscar por código o nombre..."
+               />
+             </div>
+           </div>
+           
+           <TablaProductos
+             productos={productos}
+             cargando={cargando}
+             error={error}
+             onReintentar={cargarProductos}
+             onEditar={(p) => {
+               // Placeholder - Santiago implementará esto
+               console.log('Editar producto:', p);
+               // abrirModalEditar(p); 
+             }}
+             onEliminar={(p) => {
+               // Placeholder - Santiago implementará esto
+               console.log('Eliminar producto:', p);
+               // confirmarBaja(p); 
+             }}
+             recargarClave={recargarClave}
+           />
+         </>
+       )}
 
       {tabActiva === 'entradas' && esAdmin && (
         <div className="panel-card" style={{ padding: '32px' }}>
