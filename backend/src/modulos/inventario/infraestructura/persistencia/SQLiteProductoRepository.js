@@ -46,33 +46,38 @@ export class SQLiteProductoRepository extends IProductoRepository {
     return ProductoMapper.aDominio(fila);
   }
 
-  async listarTodos(filtros = {}) {
-    const condiciones = ['activo = 1'];
-    const parametros = [];
+   async listarTodos(filtros = {}) {
+     const condiciones = [];
+     const parametros = [];
+     let orden = 'nombre ASC';
+     let parametrosOrden = [];
 
-    if (filtros.categoria) {
-      condiciones.push('categoria = ? COLLATE NOCASE');
-      parametros.push(filtros.categoria.trim());
-    }
+     if (filtros.categoria) {
+       condiciones.push('categoria = ? COLLATE NOCASE');
+       parametros.push(filtros.categoria.trim());
+     }
 
-    if (filtros.search) {
-      const termino = `%${filtros.search.trim()}%`;
-      condiciones.push('(nombre LIKE ? OR codigo_interno LIKE ? OR codigo_barras LIKE ?)');
-      parametros.push(termino, termino, termino);
-    }
+     if (filtros.search && filtros.search.trim()) {
+       const { construirBusqueda } = await import('./consultas/busquedaProductosSql.js');
+       const b = construirBusqueda(filtros.search);
+       condiciones.push(b.condicion);
+       parametros.push(...b.parametros);
+       orden = b.orden;
+       parametrosOrden = b.parametrosOrden;
+     }
 
-    if (filtros.estadoStock === 'STOCK_BAJO') {
-      condiciones.push('stock_actual > 0 AND stock_actual <= stock_minimo_alerta');
-    } else if (filtros.estadoStock === 'AGOTADO') {
-      condiciones.push('stock_actual <= 0');
-    } else if (filtros.estadoStock === 'CON_STOCK') {
-      condiciones.push('stock_actual > 0');
-    }
+     if (filtros.estadoStock === 'bajo') {
+       condiciones.push('stock_actual > 0 AND stock_actual <= stock_minimo_alerta');
+     } else if (filtros.estadoStock === 'agotado') {
+       condiciones.push('stock_actual <= 0');
+     } else if (filtros.estadoStock === 'con_stock') {
+       condiciones.push('stock_actual > 0');
+     }
 
     const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
     const filas = this.db
-      .prepare(`SELECT * FROM products ${where} ORDER BY nombre ASC`)
-      .all(...parametros);
+      .prepare(`SELECT * FROM products ${where} ORDER BY ${orden}`)
+      .all(...parametros, ...parametrosOrden);
 
     return filas.map((fila) => ProductoMapper.aDominio(fila));
   }
