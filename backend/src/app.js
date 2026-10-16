@@ -7,8 +7,8 @@ import { ImpresoraTermicaAdapter } from './infraestructura/impresora/impresoraTe
 
 // Módulo: Usuarios & Auth
 import { UsuarioRepository } from './modulos/usuarios/dominio/UsuarioRepository.js';
-import { AuthService } from './modulos/usuarios/servicios/AuthService.js';
-import { UsuarioService } from './modulos/usuarios/servicios/UsuarioService.js';
+import { AuthService } from './modulos/usuarios/aplicacion/AuthService.js';
+import { UsuarioService } from './modulos/usuarios/aplicacion/UsuarioService.js';
 import { AuthController } from './modulos/usuarios/presentacion/authController.js';
 import { UsuarioController } from './modulos/usuarios/presentacion/usuarioController.js';
 import { crearAuthRoutes } from './modulos/usuarios/presentacion/authRoutes.js';
@@ -16,8 +16,8 @@ import { crearUsuarioRoutes } from './modulos/usuarios/presentacion/usuarioRoute
 
 // Módulo: Inventario & Catálogo
 import { ProductoRepository } from './modulos/inventario/dominio/ProductoRepository.js';
-import { ProductoService } from './modulos/inventario/servicios/ProductoService.js';
-import { StockService } from './modulos/inventario/servicios/StockService.js';
+import { ProductoService } from './modulos/inventario/aplicacion/ProductoService.js';
+import { StockService } from './modulos/inventario/aplicacion/StockService.js';
 import { ProductoController } from './modulos/inventario/presentacion/productoController.js';
 import { crearInventarioRoutes } from './modulos/inventario/presentacion/inventarioRoutes.js';
 
