@@ -45,3 +45,27 @@ export async function consultarStockApi(id) {
 export async function obtenerAlertasApi() {
   return apiFetch('/inventario/alertas');
 }
+
+/**
+ * HU-0601: Registrar una entrada de stock (reabastecimiento).
+ * @param {Object} datos - { productoId, cantidad, costoUnitario, motivo }
+ */
+export async function registrarEntradaStockApi(datos) {
+  return apiFetch('/inventario/stock/entrada', {
+    method: 'POST',
+    body: JSON.stringify(datos)
+  });
+}
+
+/**
+ * HU-0603: Consultar el historial de entradas.
+ * @param {Object} filtros - { productoId, limite }
+ */
+export async function obtenerHistorialEntradasApi(filtros = {}) {
+  const params = new URLSearchParams();
+  if (filtros.productoId) params.append('productoId', filtros.productoId);
+  if (filtros.limite) params.append('limite', filtros.limite);
+
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiFetch(`/inventario/stock/entradas${query}`);
+}

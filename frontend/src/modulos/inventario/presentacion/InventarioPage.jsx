@@ -4,12 +4,18 @@ import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { TablaProductos } from './TablaProductos';
 import { BuscadorProductos } from './BuscadorProductos';
 import { useBusquedaProductos } from '../hooks/useBusquedaProductos';
+import { EntradaStockModal } from './EntradaStockModal'; // <-- NUEVO IMPORT
+import { HistorialEntradas } from './HistorialEntradas'; // <-- NUEVO IMPORT
 import './catalogo.css';
 
 export function InventarioPage() {
   const { user } = useAuth();
   const [tabActiva, setTabActiva] = useState('catalogo'); // 'catalogo' | 'entradas' | 'alertas'
   const esAdmin = user?.role === 'ADMINISTRADOR';
+
+  // NUEVOS ESTADOS: Para el modal y la recarga de la tabla
+  const [showEntradaModal, setShowEntradaModal] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Hook que maneja estado, debounce y peticiones
   const {
@@ -53,6 +59,14 @@ export function InventarioPage() {
     [buscarProductos, manejarProductoEncontrado]
   );
 
+  // Callback cuando se registra una entrada exitosamente
+  const handleEntradaExitosa = useCallback(() => {
+    // Recargamos el catálogo para reflejar el nuevo stock
+    recargar('');
+    // Forzamos la recarga del historial cambiando el trigger
+    setRefreshTrigger(prev => prev + 1);
+  }, [recargar]);
+
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header Principal */}
@@ -86,7 +100,7 @@ export function InventarioPage() {
         {esAdmin && (
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
-              onClick={() => setTabActiva('entradas')}
+              onClick={() => setShowEntradaModal(true)} // <-- MODIFICADO: Abre el modal
               className="btn-secondary"
               style={{
                 display: 'inline-flex',
@@ -209,145 +223,116 @@ export function InventarioPage() {
         )}
       </div>
 
-       {/* Contenido según la pestaña seleccionada */}
-       {tabActiva === 'catalogo' && (
-         <>
-           <div className="panel-header" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-             <div>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                 <h1 className="header-title" style={{ fontSize: '1.75rem', margin: 0 }}>
-                   Catálogo de Productos
-                 </h1>
-                 <span style={{
-                   fontSize: '0.75rem',
-                   fontWeight: 700,
-                   padding: '4px 10px',
-                   borderRadius: '20px',
-                   backgroundColor: esAdmin ? '#FEF3C7' : '#E0F2FE',
-                   color: esAdmin ? '#92400E' : '#0369A1',
-                   display: 'inline-flex',
-                   alignItems: 'center',
-                   gap: '4px'
-                 }}>
-                   <ShieldCheck size={14} />
-                   {esAdmin ? 'Vista Administrador' : 'Vista Vendedor (Stock Protegido)'}
-                 </span>
-               </div>
-               <p style={{ color: '#877468', fontSize: '0.9rem', margin: 0 }}>
-                 Catálogo general, reabastecimiento y control de existencias · Variedades Don Mati
-               </p>
-             </div>
-             
-             {/* Botones de Acción (Solo Administrador) */}
-             {esAdmin && (
-               <div style={{ display: 'flex', gap: '10px' }}>
-                 <button
-                   onClick={() => setTabActiva('entradas')}
-                   className="btn-secondary"
-                   style={{
-                     display: 'inline-flex',
-                     alignItems: 'center',
-                     gap: '8px',
-                     padding: '10px 16px',
-                     borderRadius: '12px',
-                     border: '1.5px solid #D4A373',
-                     backgroundColor: '#FFFDF7',
-                     color: '#532009',
-                     fontWeight: 700,
-                     fontSize: '0.88rem',
-                     cursor: 'pointer'
-                   }}
-                 >
-                   <ArrowDownToLine size={18} />
-                   <span>+ Entrada de Stock</span>
-                 </button>
-                 
-                 <button
-                   onClick={() => setTabActiva('catalogo')}
-                   className="btn-primary"
-                   style={{
-                     display: 'inline-flex',
-                     alignItems: 'center',
-                     gap: '8px',
-                     padding: '10px 18px',
-                     borderRadius: '12px',
-                     backgroundColor: '#FF6600',
-                     color: 'white',
-                     border: 'none',
-                     fontWeight: 700,
-                     fontSize: '0.88rem',
-                     cursor: 'pointer',
-                     boxShadow: '0 4px 14px rgba(255, 102, 0, 0.25)'
-                   }}
-                 >
-                   <Plus size={18} />
-                   <span>+ Nuevo Producto</span>
-                 </button>
-               </div>
-             )}
-           </div>
-           
-           {/* Buscador y Tabla */}
-           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-             <div style={{ flex: 1, minWidth: 0 }}>
-               <BuscadorProductos 
-                 onBuscar={manejarBusqueda} 
-                 onBuscarInmediato={manejarBusquedaInmediata}
-                 onProductoEncontrado={manejarProductoEncontrado}
-                 placeholder="Buscar por código o nombre..."
-               />
-             </div>
-           </div>
-           
-           <TablaProductos
-             productos={productos}
-             cargando={cargando}
-             error={error}
-             onReintentar={() => recargar()}
-             onEditar={(p) => {
-               // Placeholder - Santiago implementará esto
-               console.log('Editar producto:', p);
-               // abrirModalEditar(p); 
-             }}
-             onEliminar={(p) => {
-               // Placeholder - Santiago implementará esto
-               console.log('Eliminar producto:', p);
-               // confirmarBaja(p); 
-             }}
-           />
-         </>
-       )}
-
-      {tabActiva === 'entradas' && esAdmin && (
-        <div className="panel-card" style={{ padding: '32px' }}>
-          <div style={{
-            backgroundColor: '#FFFDF7',
-            border: '1.5px dashed #D4A373',
-            borderRadius: '16px',
-            padding: '36px 24px',
-            textAlign: 'center',
-            color: '#532009'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              backgroundColor: '#FEF3C7',
-              color: '#D97706',
-              borderRadius: '16px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <ArrowDownToLine size={32} />
+      {/* Contenido según la pestaña seleccionada */}
+      {tabActiva === 'catalogo' && (
+        <>
+          <div className="panel-header" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <h1 className="header-title" style={{ fontSize: '1.75rem', margin: 0 }}>
+                  Catálogo de Productos
+                </h1>
+                <span style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  backgroundColor: esAdmin ? '#FEF3C7' : '#E0F2FE',
+                  color: esAdmin ? '#92400E' : '#0369A1',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <ShieldCheck size={14} />
+                  {esAdmin ? 'Vista Administrador' : 'Vista Vendedor (Stock Protegido)'}
+                </span>
+              </div>
+              <p style={{ color: '#877468', fontSize: '0.9rem', margin: 0 }}>
+                Catálogo general, reabastecimiento y control de existencias · Variedades Don Mati
+              </p>
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 8px 0', color: '#2B1810' }}>
-              Módulo de Entradas de Mercancía y Reabastecimiento
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#877468', maxWidth: '600px', margin: '0 auto 20px auto', lineHeight: '1.5' }}>
-              Espacio donde Juliana conectará el <strong>EntradaStockModal</strong> (búsqueda por código/lector o nombre) y la tabla de <strong>HistorialEntradas</strong> (Kardex).
-            </p>
+            
+            {/* Botones de Acción (Solo Administrador) */}
+            {esAdmin && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setShowEntradaModal(true)} // <-- MODIFICADO: Abre el modal
+                  className="btn-secondary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    border: '1.5px solid #D4A373',
+                    backgroundColor: '#FFFDF7',
+                    color: '#532009',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ArrowDownToLine size={18} />
+                  <span>+ Entrada de Stock</span>
+                </button>
+                
+                <button
+                  onClick={() => setTabActiva('catalogo')}
+                  className="btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 18px',
+                    borderRadius: '12px',
+                    backgroundColor: '#FF6600',
+                    color: 'white',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(255, 102, 0, 0.25)'
+                  }}
+                >
+                  <Plus size={18} />
+                  <span>+ Nuevo Producto</span>
+                </button>
+              </div>
+            )}
           </div>
+          
+          {/* Buscador y Tabla */}
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <BuscadorProductos 
+                onBuscar={manejarBusqueda} 
+                onBuscarInmediato={manejarBusquedaInmediata}
+                onProductoEncontrado={manejarProductoEncontrado}
+                placeholder="Buscar por código o nombre..."
+              />
+            </div>
+          </div>
+          
+          <TablaProductos
+            productos={productos}
+            cargando={cargando}
+            error={error}
+            onReintentar={() => recargar()}
+            onEditar={(p) => {
+              console.log('Editar producto:', p);
+            }}
+            onEliminar={(p) => {
+              console.log('Eliminar producto:', p);
+            }}
+          />
+        </>
+      )}
+
+      {/* PESTAÑA DE ENTRADAS (HU-0603) - MODIFICADA */}
+      {tabActiva === 'entradas' && esAdmin && (
+        <div className="panel-card" style={{ padding: '0' }}>
+          {/* Le pasamos el trigger para que se recargue cuando se guarde una entrada */}
+          <HistorialEntradas key={refreshTrigger} />
         </div>
       )}
 
@@ -383,6 +368,13 @@ export function InventarioPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL DE ENTRADA DE STOCK (HU-0601 y HU-0602) */}
+      <EntradaStockModal 
+        isOpen={showEntradaModal} 
+        onClose={() => setShowEntradaModal(false)} 
+        onSuccess={handleEntradaExitosa}
+      />
     </div>
   );
 }

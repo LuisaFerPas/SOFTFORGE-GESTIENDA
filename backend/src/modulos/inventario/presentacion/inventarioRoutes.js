@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { verifyToken, requireRole } from '../../usuarios/presentacion/authMiddleware.js';
 
-export function crearInventarioRoutes(productoController) {
+// IMPORTANTE: Cambiamos la firma para recibir también el stockController
+export function crearInventarioRoutes(productoController, stockController) {
   const router = Router();
 
   // Todas las rutas de inventario requieren token activo
@@ -47,6 +48,16 @@ export function crearInventarioRoutes(productoController) {
     }
     res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
   });
+
+  // HU-0601: Registrar entrada de stock (Exclusivo Admin)
+  router.post('/stock/entrada', requireRole(['ADMINISTRADOR']), (req, res) => 
+    stockController.registrarEntrada(req, res)
+  );
+
+  // HU-0603: Ver historial de entradas (Exclusivo Admin)
+  router.get('/stock/entradas', requireRole(['ADMINISTRADOR']), (req, res) => 
+    stockController.listarEntradas(req, res)
+  );
 
   return router;
 }

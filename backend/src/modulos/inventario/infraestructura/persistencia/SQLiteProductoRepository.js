@@ -218,7 +218,11 @@ export class SQLiteProductoRepository extends IProductoRepository {
     }
   }
 
-  async listarMovimientos({ productoId = null, limite = 50 } = {}) {
+  /**
+   * Lista movimientos con filtros opcionales.
+   * MODIFICADO (HU-0603.4): Ahora acepta fechaInicio y fechaFin.
+   */
+  async listarMovimientos({ productoId = null, limite = 50, fechaInicio = null, fechaFin = null } = {}) {
     let query = `
       SELECT m.*, p.nombre as producto_nombre, p.codigo_interno, u.username as usuario_nombre
       FROM stock_movements m
@@ -226,10 +230,26 @@ export class SQLiteProductoRepository extends IProductoRepository {
       LEFT JOIN users u ON m.usuario_id = u.id
     `;
     const params = [];
+    const condiciones = [];
 
     if (productoId) {
-      query += ' WHERE m.producto_id = ?';
+      condiciones.push('m.producto_id = ?');
       params.push(Number(productoId));
+    }
+
+    // Filtros por fecha (HU-0603.4)
+    if (fechaInicio) {
+      condiciones.push('m.created_at >= ?');
+      params.push(fechaInicio);
+    }
+    
+    if (fechaFin) {
+      condiciones.push('m.created_at <= ?');
+      params.push(fechaFin);
+    }
+
+    if (condiciones.length > 0) {
+      query += ` WHERE ${condiciones.join(' AND ')}`;
     }
 
     query += ' ORDER BY m.created_at DESC LIMIT ?';
