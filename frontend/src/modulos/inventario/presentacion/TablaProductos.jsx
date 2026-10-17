@@ -287,44 +287,60 @@ export function TablaProductos({
                 </td>
               )}
               <td className="col-acciones" style={{ 
-                padding: '0.5rem 0.75rem', 
+                padding: '0.6rem 0.75rem', 
                 display: 'flex', 
-                gap: '0.25rem' 
+                alignItems: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap'
               }}>
                 {onEditar && (
                   <button 
-                    className="btn-accion editar" 
+                    className="btn-accion-texto editar" 
                     onClick={() => onEditar(p)} 
-                    title="Editar"
+                    title="Editar datos del producto"
                     style={{
-                      background: 'none',
-                      border: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      backgroundColor: '#FFF7ED',
+                      color: '#C2410C',
+                      border: '1.5px solid #FDBA74',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
                       cursor: 'pointer',
-                      padding: '0.25rem',
-                      borderRadius: '0.25rem',
-                      color: 'var(--color-texto-secundario, #666)',
-                      transition: 'background 0.15s, color 0.15s'
+                      transition: 'all 0.15s',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}
                   >
-                    <Edit size={16} />
+                    <Edit size={15} />
+                    <span>Editar</span>
                   </button>
                 )}
                 {onEliminar && (
                   <button 
-                    className="btn-accion eliminar" 
+                    className="btn-accion-texto eliminar" 
                     onClick={() => onEliminar(p)} 
-                    title="Dar de baja"
+                    title="Dar de baja / Eliminar producto"
                     style={{
-                      background: 'none',
-                      border: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      backgroundColor: '#FEF2F2',
+                      color: '#B91C1C',
+                      border: '1.5px solid #FCA5A5',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
                       cursor: 'pointer',
-                      padding: '0.25rem',
-                      borderRadius: '0.25rem',
-                      color: 'var(--color-texto-secundario, #666)',
-                      transition: 'background 0.15s, color 0.15s'
+                      transition: 'all 0.15s',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={15} />
+                    <span>Eliminar</span>
                   </button>
                 )}
               </td>

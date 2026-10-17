@@ -69,3 +69,36 @@ export async function obtenerHistorialEntradasApi(filtros = {}) {
   const query = params.toString() ? `?${params.toString()}` : '';
   return apiFetch(`/inventario/stock/entradas${query}`);
 }
+
+/**
+ *: Registrar un nuevo producto en el catálogo.
+ * @param {Object} datos
+ */
+export async function registrarProductoApi(datos) {
+  return apiFetch('/inventario/productos', {
+    method: 'POST',
+    body: JSON.stringify(datos)
+  });
+}
+
+/**
+ * HU-0502: Modificar los datos de un producto existente.
+ * @param {number|string} id
+ * @param {Object} datos
+ */
+export async function modificarProductoApi(id, datos) {
+  return apiFetch(`/inventario/productos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(datos)
+  });
+}
+
+/**
+ * HU-0503: Dar de baja (desactivar) un producto del catálogo.
+ * @param {number|string} id
+ */
+export async function darDeBajaProductoApi(id) {
+  return apiFetch(`/inventario/productos/${id}`, {
+    method: 'DELETE'
+  });
+}

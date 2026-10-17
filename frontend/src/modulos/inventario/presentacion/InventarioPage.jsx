@@ -6,6 +6,8 @@ import { BuscadorProductos } from './BuscadorProductos';
 import { useBusquedaProductos } from '../hooks/useBusquedaProductos';
 import { EntradaStockModal } from './EntradaStockModal'; // <-- NUEVO IMPORT
 import { HistorialEntradas } from './HistorialEntradas'; // <-- NUEVO IMPORT
+import { ProductoModal } from './ProductoModal';
+import { BajaProductoModal } from './BajaProductoModal';
 import './catalogo.css';
 
 export function InventarioPage() {
@@ -13,8 +15,11 @@ export function InventarioPage() {
   const [tabActiva, setTabActiva] = useState('catalogo'); // 'catalogo' | 'entradas' | 'alertas'
   const esAdmin = user?.role === 'ADMINISTRADOR';
 
-  // NUEVOS ESTADOS: Para el modal y la recarga de la tabla
+  // Estados de modales y recargas
   const [showEntradaModal, setShowEntradaModal] = useState(false);
+  const [showProductoModal, setShowProductoModal] = useState(false);
+  const [productoAEditar, setProductoAEditar] = useState(null);
+  const [productoAEliminar, setProductoAEliminar] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Hook que maneja estado, debounce y peticiones
@@ -67,6 +72,29 @@ export function InventarioPage() {
     setRefreshTrigger(prev => prev + 1);
   }, [recargar]);
 
+  // Handlers para HU-0501, HU-0502, HU-0503 (Santiago)
+  const handleNuevoProducto = useCallback(() => {
+    setProductoAEditar(null);
+    setShowProductoModal(true);
+  }, []);
+
+  const handleEditarProducto = useCallback((producto) => {
+    setProductoAEditar(producto);
+    setShowProductoModal(true);
+  }, []);
+
+  const handleEliminarProducto = useCallback((producto) => {
+    setProductoAEliminar(producto);
+  }, []);
+
+  const handleProductoGuardado = useCallback(() => {
+    recargar('');
+  }, [recargar]);
+
+  const handleProductoEliminado = useCallback(() => {
+    recargar('');
+  }, [recargar]);
+
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header Principal */}
@@ -117,11 +145,11 @@ export function InventarioPage() {
               }}
             >
               <ArrowDownToLine size={18} />
-              <span>+ Entrada de Stock</span>
+              <span>Entrada de Stock</span>
             </button>
 
             <button
-              onClick={() => setTabActiva('catalogo')}
+              onClick={handleNuevoProducto}
               className="btn-primary"
               style={{
                 display: 'inline-flex',
@@ -139,7 +167,7 @@ export function InventarioPage() {
               }}
             >
               <Plus size={18} />
-              <span>+ Nuevo Producto</span>
+              <span>Nuevo Producto</span>
             </button>
           </div>
         )}
@@ -226,81 +254,6 @@ export function InventarioPage() {
       {/* Contenido según la pestaña seleccionada */}
       {tabActiva === 'catalogo' && (
         <>
-          <div className="panel-header" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <h1 className="header-title" style={{ fontSize: '1.75rem', margin: 0 }}>
-                  Catálogo de Productos
-                </h1>
-                <span style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  backgroundColor: esAdmin ? '#FEF3C7' : '#E0F2FE',
-                  color: esAdmin ? '#92400E' : '#0369A1',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <ShieldCheck size={14} />
-                  {esAdmin ? 'Vista Administrador' : 'Vista Vendedor (Stock Protegido)'}
-                </span>
-              </div>
-              <p style={{ color: '#877468', fontSize: '0.9rem', margin: 0 }}>
-                Catálogo general, reabastecimiento y control de existencias · Variedades Don Mati
-              </p>
-            </div>
-            
-            {/* Botones de Acción (Solo Administrador) */}
-            {esAdmin && (
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={() => setShowEntradaModal(true)} // <-- MODIFICADO: Abre el modal
-                  className="btn-secondary"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    borderRadius: '12px',
-                    border: '1.5px solid #D4A373',
-                    backgroundColor: '#FFFDF7',
-                    color: '#532009',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <ArrowDownToLine size={18} />
-                  <span>+ Entrada de Stock</span>
-                </button>
-                
-                <button
-                  onClick={() => setTabActiva('catalogo')}
-                  className="btn-primary"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 18px',
-                    borderRadius: '12px',
-                    backgroundColor: '#FF6600',
-                    color: 'white',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(255, 102, 0, 0.25)'
-                  }}
-                >
-                  <Plus size={18} />
-                  <span>+ Nuevo Producto</span>
-                </button>
-              </div>
-            )}
-          </div>
-          
           {/* Buscador y Tabla */}
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -318,12 +271,8 @@ export function InventarioPage() {
             cargando={cargando}
             error={error}
             onReintentar={() => recargar()}
-            onEditar={(p) => {
-              console.log('Editar producto:', p);
-            }}
-            onEliminar={(p) => {
-              console.log('Eliminar producto:', p);
-            }}
+            onEditar={handleEditarProducto}
+            onEliminar={handleEliminarProducto}
           />
         </>
       )}
@@ -375,6 +324,25 @@ export function InventarioPage() {
         onClose={() => setShowEntradaModal(false)} 
         onSuccess={handleEntradaExitosa}
       />
+
+      {/* MODAL DE REGISTRAR Y MODIFICAR PRODUCTO (HU-0501 y HU-0502) */}
+      <ProductoModal
+        isOpen={showProductoModal}
+        onClose={() => {
+          setShowProductoModal(false);
+          setProductoAEditar(null);
+        }}
+        onSuccess={handleProductoGuardado}
+        productoAEditar={productoAEditar}
+      />
+
+      {/* MODAL DE DAR DE BAJA PRODUCTO (HU-0503) */}
+      <BajaProductoModal
+        isOpen={Boolean(productoAEliminar)}
+        onClose={() => setProductoAEliminar(null)}
+        onSuccess={handleProductoEliminado}
+        producto={productoAEliminar}
+      />
     </div>
   );
-}
+}

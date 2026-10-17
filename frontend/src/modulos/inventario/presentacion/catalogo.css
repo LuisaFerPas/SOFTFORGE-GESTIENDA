@@ -48,6 +48,14 @@
 .btn-accion.editar:hover { color: var(--color-primario, #e67e22); }
 .btn-accion.eliminar:hover { color: var(--color-error, #e74c3c); }
 
+.btn-accion-texto:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.96);
+}
+.btn-accion-texto:active {
+  transform: translateY(0);
+}
+
 .tabla-estado { 
   padding: 2rem; 
   text-align: center; 

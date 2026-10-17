@@ -90,4 +90,57 @@ export class ProductoController {
       data: resultado.getValue()
     });
   }
+
+  /**
+   * Registra un nuevo producto en el catálogo (Exclusivo Administrador).
+   */
+  async registrar(req, res) {
+    const resultado = await this.productoService.registrarProducto(req.body);
+    if (resultado.isFailure) {
+      return res.status(400).json({ success: false, message: resultado.error });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Producto registrado exitosamente.',
+      data: resultado.getValue()
+    });
+  }
+
+  /**
+   *Modifica los datos de un producto existente (Exclusivo Administrador).
+   */
+  async editar(req, res) {
+    const { id } = req.params;
+    const resultado = await this.productoService.modificarProducto(id, req.body);
+    if (resultado.isFailure) {
+      const status = resultado.error.toLowerCase().includes('no encontrado') ? 404 : 400;
+      return res.status(status).json({ success: false, message: resultado.error });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Producto modificado exitosamente.',
+      data: resultado.getValue()
+    });
+  }
+
+  /**
+   * Da de baja (desactiva) un producto del catálogo (Exclusivo Administrador).
+   */
+  async eliminar(req, res) {
+    const { id } = req.params;
+    const resultado = await this.productoService.darDeBajaProducto(id);
+    if (resultado.isFailure) {
+      const status = resultado.error.toLowerCase().includes('no encontrado') ? 404 : 400;
+      return res.status(status).json({ success: false, message: resultado.error });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Producto dado de baja exitosamente.',
+      data: resultado.getValue()
+    });
+  }
 }
+

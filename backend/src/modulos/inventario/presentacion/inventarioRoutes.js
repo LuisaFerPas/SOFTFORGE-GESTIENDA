@@ -27,27 +27,20 @@ export function crearInventarioRoutes(productoController, stockController) {
     productoController.obtenerAlertas(req, res)
   );
 
-  // Endpoints mutacionales para compañeros (Santiago / Juliana)
-  router.post('/productos', requireRole(['ADMINISTRADOR']), (req, res) => {
-    if (typeof productoController.registrar === 'function') {
-      return productoController.registrar(req, res);
-    }
-    res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
-  });
+  // HU-0501: Registrar nuevo producto (Exclusivo Administrador)
+  router.post('/productos', requireRole(['ADMINISTRADOR']), (req, res) =>
+    productoController.registrar(req, res)
+  );
 
-  router.put('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) => {
-    if (typeof productoController.editar === 'function') {
-      return productoController.editar(req, res);
-    }
-    res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
-  });
+  // HU-0502: Modificar producto (Exclusivo Administrador)
+  router.put('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) =>
+    productoController.editar(req, res)
+  );
 
-  router.delete('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) => {
-    if (typeof productoController.eliminar === 'function') {
-      return productoController.eliminar(req, res);
-    }
-    res.status(501).json({ message: 'Endpoint pendiente de implementación por Santiago' });
-  });
+  // HU-0503: Dar de baja producto (Exclusivo Administrador)
+  router.delete('/productos/:id', requireRole(['ADMINISTRADOR']), (req, res) =>
+    productoController.eliminar(req, res)
+  );
 
   // HU-0601: Registrar entrada de stock (Exclusivo Admin)
   router.post('/stock/entrada', requireRole(['ADMINISTRADOR']), (req, res) => 
