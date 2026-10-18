@@ -6,7 +6,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-testing-
 import { inicializarEsquema } from '../src/infraestructura/database/esquema.js';
 import { db } from '../src/infraestructura/database/conexion.js';
 import { UsuarioRepository } from '../src/modulos/usuarios/dominio/UsuarioRepository.js';
-import { AuthService } from '../src/modulos/usuarios/servicios/AuthService.js';
+import { AuthService } from '../src/modulos/usuarios/aplicacion/AuthService.js';
 import { Result } from '../src/shared/Result.js';
 import bcrypt from 'bcryptjs';
 
@@ -89,4 +89,4 @@ test('7. [HU-0203] Cambio rápido de usuario fallido con credenciales erróneas'
   const resultado = await service.cambiarUsuario('vendedor', 'claveMala');
   assert.ok(resultado.isFailure, 'Debería fallar con clave incorrecta');
   assert.equal(resultado.error, 'Usuario o contraseña inválidos');
-});
+});

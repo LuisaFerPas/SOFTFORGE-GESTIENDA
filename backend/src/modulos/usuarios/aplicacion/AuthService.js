@@ -7,7 +7,7 @@ const MENSAJE_CREDENCIALES_INVALIDAS = 'Usuario o contraseña inválidos';
 const DURACION_TOKEN = '8h';
 
 /**
- * Servicio de Autenticación y Sesión (HE-02)
+ * Servicio de Aplicación: Autenticación y Sesión (HE-02)
  */
 export class AuthService {
   constructor(usuarioRepository) {
@@ -29,7 +29,7 @@ export class AuthService {
       return Result.fail(MENSAJE_CREDENCIALES_INVALIDAS);
     }
 
-    if (usuario.estado !== 'ACTIVO') {
+    if (!usuario.estaActivo()) {
       return Result.fail('El usuario se encuentra inactivo');
     }
 
@@ -52,10 +52,8 @@ export class AuthService {
   /**
    * HU-0203: Cambio Rápido de Cajero
    * Autentica un nuevo usuario sin cerrar la sesión del sistema.
-   * Reutiliza exactamente la misma lógica de validación que login().
    */
   async cambiarUsuario(nuevoUsername, nuevoPassword) {
-    // Reutilizamos login() — valida credenciales, estado ACTIVO y genera nuevo JWT
     return this.login(nuevoUsername, nuevoPassword);
   }
 }

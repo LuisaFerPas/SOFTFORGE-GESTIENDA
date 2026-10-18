@@ -7,18 +7,19 @@ import { ImpresoraTermicaAdapter } from './infraestructura/impresora/impresoraTe
 
 // Módulo: Usuarios & Auth
 import { UsuarioRepository } from './modulos/usuarios/dominio/UsuarioRepository.js';
-import { AuthService } from './modulos/usuarios/servicios/AuthService.js';
-import { UsuarioService } from './modulos/usuarios/servicios/UsuarioService.js';
+import { AuthService } from './modulos/usuarios/aplicacion/AuthService.js';
+import { UsuarioService } from './modulos/usuarios/aplicacion/UsuarioService.js';
 import { AuthController } from './modulos/usuarios/presentacion/authController.js';
 import { UsuarioController } from './modulos/usuarios/presentacion/usuarioController.js';
 import { crearAuthRoutes } from './modulos/usuarios/presentacion/authRoutes.js';
-import { crearUsuarioRoutes } from './modulos/usuarios/presentacion/usuarioRoutes.js'; // <-- Import correcto
+import { crearUsuarioRoutes } from './modulos/usuarios/presentacion/usuarioRoutes.js';
 
 // Módulo: Inventario & Catálogo
 import { ProductoRepository } from './modulos/inventario/dominio/ProductoRepository.js';
-import { ProductoService } from './modulos/inventario/servicios/ProductoService.js';
-import { StockService } from './modulos/inventario/servicios/StockService.js';
+import { ProductoService } from './modulos/inventario/aplicacion/ProductoService.js';
+import { StockService } from './modulos/inventario/aplicacion/StockService.js';
 import { ProductoController } from './modulos/inventario/presentacion/productoController.js';
+import { StockController } from './modulos/inventario/presentacion/stockController.js'; // <-- NUEVO IMPORT
 import { crearInventarioRoutes } from './modulos/inventario/presentacion/inventarioRoutes.js';
 
 // Módulo: Ventas & Facturación
@@ -74,12 +75,14 @@ app.use('/api/auth', crearAuthRoutes(authController));
 app.use('/api/usuarios', crearUsuarioRoutes(usuarioController));
 
 // -- Módulo Inventario
-const productoRepository = new ProductoRepository();
+const productoRepository = new ProductoRepository(db);
 const productoService = new ProductoService(productoRepository);
 const stockService = new StockService(productoRepository);
 const productoController = new ProductoController(productoService, stockService);
+const stockController = new StockController(stockService); // <-- NUEVA INSTANCIA
 
-app.use('/api/inventario', crearInventarioRoutes(productoController));
+// MODIFICADO: Ahora le pasamos también el stockController
+app.use('/api/inventario', crearInventarioRoutes(productoController, stockController));
 
 // -- Módulo Ventas
 const ventaRepository = new VentaRepository();

@@ -1,0 +1,136 @@
+.tabla-wrapper { overflow-x: auto; }
+.tabla-productos { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.tabla-productos th,
+.tabla-productos td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--color-borde, #e0e0e0); }
+.tabla-productos th { background: var(--color-fondo-secundario, #f8f8f8); font-weight: 600; color: var(--color-texto, #333); }
+.tabla-productos tr:hover { background: var(--color-hover, #f5f5f5); }
+.tabla-productos tr.agotado { background: #fff0f0; }
+.tabla-productos tr.stock-bajo { background: #fffdf0; }
+
+.col-codigo { font-family: monospace; font-size: 0.8rem; color: var(--color-texto-secundario, #666); }
+.col-producto { display: flex; flex-direction: column; gap: 0.125rem; }
+.nombre { font-weight: 500; }
+.codigo-barras { font-size: 0.7rem; color: var(--color-texto-secundario, #999); font-family: monospace; }
+.col-precio { white-space: nowrap; }
+.col-iva { text-align: center; }
+.col-stock, .col-min { text-align: center; font-variant-numeric: tabular-nums; }
+.stock-cero { color: var(--color-error, #e74c3c); font-weight: 600; }
+.stock-bajo { color: var(--color-advertencia, #f39c12); font-weight: 600; }
+.icono-agotado { color: var(--color-error, #e74c3c); margin-left: 0.25rem; }
+.icono-bajo { color: var(--color-advertencia, #f39c12); margin-left: 0.25rem; }
+
+.cat-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: white;
+}
+.cat-badge--juguetes { background: #e67e22; } /* naranja */
+.cat-badge--aseo { background: #3498db; } /* azul */
+.cat-badge--cacharro { background: #8e44ad; } /* morado */
+.cat-badge--maquillaje { background: #e91e63; } /* rosa */
+.cat-badge--pinateria { background: #f39c12; } /* amarillo */
+
+.col-acciones { display: flex; gap: 0.25rem; }
+.btn-accion {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: var(--color-texto-secundario, #666);
+  transition: background 0.15s, color 0.15s;
+}
+.btn-accion:hover { background: var(--color-hover, #e0e0e0); }
+.btn-accion.editar:hover { color: var(--color-primario, #e67e22); }
+.btn-accion.eliminar:hover { color: var(--color-error, #e74c3c); }
+
+.btn-accion-texto:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.96);
+}
+.btn-accion-texto:active {
+  transform: translateY(0);
+}
+
+.tabla-estado { 
+  padding: 2rem; 
+  text-align: center; 
+  color: var(--color-texto-secundario, #666); 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 0.75rem; 
+}
+.tabla-estado.carga { color: var(--color-primario, #e67e22); }
+.tabla-estado.error { color: var(--color-error, #e74c3c); }
+.tabla-estado button { 
+  padding: 0.5rem 1rem; 
+  background: var(--color-primario, #e67e22); 
+  color: white; 
+  border: none; 
+  border-radius: 0.25rem; 
+  cursor: pointer; 
+}
+
+/* Buscador */
+.buscador-productos { position: relative; max-width: 400px; }
+.buscador-input-wrapper { position: relative; display: flex; align-items: center; }
+.buscador-icon { position: absolute; left: 0.75rem; color: var(--color-texto-secundario, #999); pointer-events: none; }
+.buscador-input-wrapper input {
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+  border: 1px solid var(--color-borde, #ddd);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background: white;
+}
+.buscador-input-wrapper input:focus { 
+  outline: none; 
+  border-color: var(--color-primario, #e67e22); 
+  box-shadow: 0 0 0 2px var(--color-primario-claro, #ffe0b2); 
+}
+.buscador-clear { 
+  position: absolute; 
+  right: 0.5rem; 
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  color: var(--color-texto-secundario, #999); 
+  padding: 0.25rem; 
+}
+.buscador-clear:hover { color: var(--color-texto, #333); }
+
+/* Campo Umbral */
+.campo-umbral { display: flex; flex-direction: column; gap: 0.25rem; }
+.campo-umbral label { 
+  font-size: 0.875rem; 
+  font-weight: 500; 
+  color: var(--color-texto, #333); 
+}
+.campo-umbral input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-borde, #ddd);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+.campo-umbral input.error { border-color: var(--color-error, #e74c3c); }
+.campo-umbral input:focus { 
+  outline: none; 
+  border-color: var(--color-primario, #e67e22); 
+  box-shadow: 0 0 0 2px var(--color-primario-claro, #ffe0b2); 
+}
+.campo-umbral .ayuda { 
+  font-size: 0.75rem; 
+  color: var(--color-texto-secundario, #999); 
+}
+.campo-umbral .error-msg { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.25rem; 
+  font-size: 0.75rem; 
+  color: var(--color-error, #e74c3c); 
+}
