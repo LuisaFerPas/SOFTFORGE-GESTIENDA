@@ -38,8 +38,10 @@ export function EntradaStockModal({ isOpen, onClose, onSuccess }) {
     setProducto(null);
 
     try {
-      const prod = await obtenerProductoPorCodigoApi(codigo.trim());
-      if (prod) {
+      const respuesta = await obtenerProductoPorCodigoApi(codigo.trim());
+      // apiFetch devuelve { success, data: {...} } — extraemos el objeto producto real
+      const prod = respuesta?.data || respuesta;
+      if (prod && prod.id) {
         setProducto(prod);
         // Prellenar el costo con el costo actual del producto si existe
         setCostoUnitario(prod.costoCompra || '');

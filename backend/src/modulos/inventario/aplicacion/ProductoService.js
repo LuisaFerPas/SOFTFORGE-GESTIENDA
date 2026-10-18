@@ -273,8 +273,9 @@ export class ProductoService {
   }
 
   /**
-   * Da de baja (desactiva lógicamente) un producto del catálogo.
-   * Conserva el histórico de movimientos y ventas.
+   * Da de baja un producto del catálogo aplicando la estrategia correcta según HU-0503:
+   * - Sin historial de movimientos → eliminación FÍSICA (DELETE): libera los códigos únicos.
+   * - Con historial de movimientos → baja LÓGICA (activo=0): conserva integridad referencial.
    * @param {number|string} id
    * @returns {Promise<Result>}
    */
@@ -293,14 +294,29 @@ export class ProductoService {
         return Result.fail('El producto ya se encuentra inactivo.');
       }
 
-      await this.productoRepository.desactivar(id);
+      const tieneHistorial = await this.productoRepository.tieneMovimientos(id);
 
-      return Result.ok({
-        id: Number(id),
-        nombre: productoExistente.nombre,
-        codigoInterno: productoExistente.codigoInterno,
-        mensaje: 'Producto dado de baja exitosamente.'
-      });
+      if (tieneHistorial) {
+        // HU-0503 Criterio 3: tiene ventas/movimientos → baja lógica para conservar historial
+        await this.productoRepository.desactivar(id);
+        return Result.ok({
+          id: Number(id),
+          nombre: productoExistente.nombre,
+          codigoInterno: productoExistente.codigoInterno,
+          tipo: 'BAJA_LOGICA',
+          mensaje: 'Producto marcado como inactivo. Su historial de movimientos se conserva.'
+        });
+      } else {
+        // HU-0503 Criterio 2: sin historial → eliminación física, libera código para reutilización
+        await this.productoRepository.eliminar(id);
+        return Result.ok({
+          id: Number(id),
+          nombre: productoExistente.nombre,
+          codigoInterno: productoExistente.codigoInterno,
+          tipo: 'ELIMINACION_FISICA',
+          mensaje: 'Producto eliminado permanentemente del catálogo.'
+        });
+      }
     } catch (error) {
       return Result.fail(`Error al dar de baja el producto: ${error.message}`);
     }

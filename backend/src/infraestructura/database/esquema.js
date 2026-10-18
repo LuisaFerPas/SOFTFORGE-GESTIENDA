@@ -71,8 +71,11 @@ export function inicializarEsquema() {
     { username: 'vendedor', password: 'vendedor123', role: 'VENDEDOR' }
   ];
 
+  // INSERT OR IGNORE: solo inserta si el username no existe todavía.
+  // No usar INSERT OR REPLACE porque SQLite lo implementa como DELETE+INSERT,
+  // lo que viola la FK de stock_movements.usuario_id si ya hay movimientos registrados.
   const insertarUsuario = db.prepare(`
-    INSERT OR REPLACE INTO users (username, password_hash, role, status)
+    INSERT OR IGNORE INTO users (username, password_hash, role, status)
     VALUES (?, ?, ?, 'ACTIVO')
   `);
 

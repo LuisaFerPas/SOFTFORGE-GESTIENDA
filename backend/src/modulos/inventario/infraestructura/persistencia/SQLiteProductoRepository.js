@@ -19,16 +19,18 @@ export class SQLiteProductoRepository extends IProductoRepository {
   }
 
   async buscarPorCodigoInterno(codigoInterno) {
+    // Solo busca entre productos ACTIVOS — los dados de baja (activo=0) no bloquean reutilización de códigos
     const fila = this.db
-      .prepare('SELECT * FROM products WHERE codigo_interno = ? COLLATE NOCASE')
+      .prepare('SELECT * FROM products WHERE codigo_interno = ? COLLATE NOCASE AND activo = 1')
       .get(String(codigoInterno).trim());
     return ProductoMapper.aDominio(fila);
   }
 
   async buscarPorCodigoBarras(codigoBarras) {
     if (!codigoBarras) return null;
+    // Solo busca entre productos ACTIVOS — los dados de baja (activo=0) no bloquean reutilización de códigos
     const fila = this.db
-      .prepare('SELECT * FROM products WHERE codigo_barras = ? COLLATE NOCASE')
+      .prepare('SELECT * FROM products WHERE codigo_barras = ? COLLATE NOCASE AND activo = 1')
       .get(String(codigoBarras).trim());
     return ProductoMapper.aDominio(fila);
   }
@@ -36,10 +38,12 @@ export class SQLiteProductoRepository extends IProductoRepository {
   async buscarPorCodigo(codigo) {
     if (!codigo) return null;
     const limpio = String(codigo).trim();
+    // Solo busca entre productos ACTIVOS — los dados de baja no deben aparecer en búsquedas de venta/inventario
     const fila = this.db
       .prepare(`
         SELECT * FROM products 
         WHERE (codigo_interno = ? COLLATE NOCASE OR codigo_barras = ? COLLATE NOCASE)
+          AND activo = 1
         LIMIT 1
       `)
       .get(limpio, limpio);
@@ -144,6 +148,28 @@ export class SQLiteProductoRepository extends IProductoRepository {
   async desactivar(id) {
     const info = this.db
       .prepare('UPDATE products SET activo = 0 WHERE id = ?')
+      .run(Number(id));
+    return Number(info.changes);
+  }
+
+  /**
+   * Verifica si un producto tiene movimientos de stock o ventas asociadas.
+   * Usado para decidir entre baja lógica vs eliminación física (HU-0503).
+   */
+  async tieneMovimientos(id) {
+    const fila = this.db
+      .prepare('SELECT COUNT(*) as total FROM stock_movements WHERE producto_id = ?')
+      .get(Number(id));
+    return fila.total > 0;
+  }
+
+  /**
+   * Elimina físicamente un producto sin historial.
+   * Solo se llama cuando tieneMovimientos() retorna false (HU-0503 criterio 2).
+   */
+  async eliminar(id) {
+    const info = this.db
+      .prepare('DELETE FROM products WHERE id = ?')
       .run(Number(id));
     return Number(info.changes);
   }
