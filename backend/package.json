@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "seed:productos": "node --env-file=.env scripts/seed-productos.js",
     "test": "node --env-file=.env --test tests/*.test.js"
   },
   "keywords": [

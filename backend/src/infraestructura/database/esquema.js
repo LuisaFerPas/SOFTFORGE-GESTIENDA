@@ -1,5 +1,6 @@
 import { db } from './conexion.js';
 import bcrypt from 'bcryptjs';
+import { seedProductos } from './seedProductos.js';
 
 export function inicializarEsquema() {
   db.exec(`
@@ -46,6 +47,32 @@ export function inicializarEsquema() {
       FOREIGN KEY (usuario_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS sales (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      total REAL NOT NULL,
+      medio_pago TEXT NOT NULL CHECK(medio_pago IN ('EFECTIVO','NEQUI','MIXTO')),
+      monto_efectivo REAL NOT NULL DEFAULT 0,
+      monto_nequi REAL NOT NULL DEFAULT 0,
+      cambio REAL NOT NULL DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (usuario_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS sale_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      venta_id INTEGER NOT NULL,
+      producto_id INTEGER NOT NULL,
+      cantidad INTEGER NOT NULL CHECK(cantidad > 0),
+      precio_unitario REAL NOT NULL,
+      subtotal REAL NOT NULL,
+      FOREIGN KEY (venta_id) REFERENCES sales(id),
+      FOREIGN KEY (producto_id) REFERENCES products(id) ON DELETE RESTRICT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at);
+    CREATE INDEX IF NOT EXISTS idx_sale_items_venta ON sale_items(venta_id);
+
     CREATE INDEX IF NOT EXISTS idx_products_codigo_barras ON products(codigo_barras);
     CREATE INDEX IF NOT EXISTS idx_products_codigo_interno ON products(codigo_interno);
     CREATE INDEX IF NOT EXISTS idx_products_categoria ON products(categoria);
@@ -62,6 +89,11 @@ export function inicializarEsquema() {
     }
   } catch (e) {
     // Ignorar si ya existe
+  }
+
+  // SD-73: opt-in explícito; nunca sembrar datos ficticios en producción.
+  if (process.env.NODE_ENV !== 'production' && process.env.GESTIENDA_SEED_DEMO === 'true') {
+    seedProductos(db);
   }
 
   // Usuarios Semilla
