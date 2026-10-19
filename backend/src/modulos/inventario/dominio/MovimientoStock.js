@@ -52,8 +52,8 @@ export class MovimientoStock {
     if (!cantidad || Number(cantidad) <= 0) {
       throw new Error('La cantidad del movimiento debe ser un número mayor a cero.');
     }
-    if (stockAnterior < 0 || stockNuevo < 0) {
-      throw new Error('Los valores de stock anterior y nuevo no pueden ser negativos.');
+    if (!Number.isFinite(Number(stockAnterior)) || !Number.isFinite(Number(stockNuevo))) {
+      throw new Error('Los valores de stock anterior y nuevo deben ser finitos.');
     }
   }
 

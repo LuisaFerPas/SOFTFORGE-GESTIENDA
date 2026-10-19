@@ -59,8 +59,9 @@ export class Producto {
     if (precioVentaUnitario < 0) {
       throw new Error('El precio de venta no puede ser negativo.');
     }
-    if (stockActual < 0) {
-      throw new Error('El stock actual no puede ser negativo.');
+    // RV-15: el inventario puede quedar negativo cuando se registra una venta informativa.
+    if (!Number.isInteger(Number(stockActual)) || !Number.isFinite(Number(stockActual))) {
+      throw new Error('El stock debe ser un número entero.');
     }
     if (stockMinimoAlerta < 0) {
       throw new Error('El umbral de stock mínimo no puede ser negativo.');

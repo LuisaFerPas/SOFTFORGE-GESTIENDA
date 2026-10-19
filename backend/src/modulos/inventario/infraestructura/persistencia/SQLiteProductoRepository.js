@@ -203,7 +203,9 @@ export class SQLiteProductoRepository extends IProductoRepository {
       tipo === TipoMovimientoStock.AJUSTE_NEGATIVO ||
       tipo === TipoMovimientoStock.MERMA
     ) {
-      stockNuevo = Math.max(0, stockAnterior - cant);
+      // RV-15: las ventas pueden dejar saldo negativo; los ajustes mantienen la regla previa.
+      stockNuevo = tipo === TipoMovimientoStock.SALIDA_VENTA
+        ? stockAnterior - cant : Math.max(0, stockAnterior - cant);
     }
 
     const ahora = new Date().toISOString();

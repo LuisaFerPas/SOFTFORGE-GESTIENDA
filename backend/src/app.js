@@ -85,7 +85,7 @@ const stockController = new StockController(stockService); // <-- NUEVA INSTANCI
 app.use('/api/inventario', crearInventarioRoutes(productoController, stockController));
 
 // -- Módulo Ventas
-const ventaRepository = new VentaRepository();
+const ventaRepository = new VentaRepository(db);
 const impresoraAdapter = new ImpresoraTermicaAdapter();
 const ventaService = new VentaService(ventaRepository, eventBus);
 const facturacionService = new FacturacionService(ventaRepository, impresoraAdapter);
