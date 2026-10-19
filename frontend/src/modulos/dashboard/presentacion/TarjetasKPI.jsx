@@ -2,7 +2,7 @@ import React from 'react';
 import { ShoppingCart, TrendingUp, AlertTriangle, FileText } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 
-export function TarjetasKPI() {
+export function TarjetasKPI({ alertas = [], alertasCargando = false, alertasError = '' }) {
   const { isAdmin } = useAuth();
 
   return (
@@ -39,10 +39,10 @@ export function TarjetasKPI() {
           <div className="kpi-icon-pill" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>
             <AlertTriangle size={22} />
           </div>
-          <div className="kpi-value" style={{ color: '#DC2626' }}>7 productos</div>
+          <div className="kpi-value" style={{ color: '#DC2626' }}>{alertasCargando ? 'Cargando...' : alertasError ? 'Sin datos' : `${alertas.length} productos`}</div>
           <div className="kpi-label">Stock bajo</div>
           <div style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 700, marginTop: '2px' }}>
-            Requieren reposición
+            {alertasError ? 'Error al consultar alertas' : 'Requieren reposición'}
           </div>
         </div>
       )}

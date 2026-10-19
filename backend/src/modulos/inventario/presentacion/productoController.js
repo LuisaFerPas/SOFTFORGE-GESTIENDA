@@ -85,9 +85,11 @@ export class ProductoController {
       return res.status(403).json({ success: false, message: resultado.error });
     }
 
+    const alertas = resultado.getValue();
     return res.status(200).json({
       success: true,
-      data: resultado.getValue()
+      data: alertas,
+      resumen: { total: alertas.length, bajos: alertas.filter(p => p.stockActual > 0).length, agotados: alertas.filter(p => p.stockActual <= 0).length }
     });
   }
 

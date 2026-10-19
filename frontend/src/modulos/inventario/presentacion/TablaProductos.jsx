@@ -1,4 +1,5 @@
 import { formatCOP } from '../utilidades/formatoMoneda.js';
+import { BadgeEstadoStock } from './BadgeEstadoStock';
 import { Edit, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const CATEGORIA_BADGES = {
@@ -159,14 +160,8 @@ export function TablaProductos({
                 color: 'var(--color-texto, #333)' 
               }}>Mín.</th>
             )}
-            <th style={{ 
-              padding: '0.5rem 0.75rem', 
-              textAlign: 'left', 
-              borderBottom: '1px solid var(--color-borde, #e0e0e0)', 
-              background: 'var(--color-fondo-secundario, #f8f8f8)', 
-              fontWeight: '600', 
-              color: 'var(--color-texto, #333)' 
-            }}>Acciones</th>
+            {tieneStock && <th scope="col">Estado</th>}
+            <th scope="col">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -286,6 +281,7 @@ export function TablaProductos({
                   {p.stockMinimoAlerta}
                 </td>
               )}
+              {tieneStock && <td><BadgeEstadoStock producto={p} /></td>}
               <td className="col-acciones" style={{ 
                 padding: '0.6rem 0.75rem', 
                 display: 'flex', 

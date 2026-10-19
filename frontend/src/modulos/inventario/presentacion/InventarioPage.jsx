@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, ArrowDownToLine, AlertTriangle, Layers, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { TablaProductos } from './TablaProductos';
@@ -8,11 +9,13 @@ import { EntradaStockModal } from './EntradaStockModal'; // <-- NUEVO IMPORT
 import { HistorialEntradas } from './HistorialEntradas'; // <-- NUEVO IMPORT
 import { ProductoModal } from './ProductoModal';
 import { BajaProductoModal } from './BajaProductoModal';
+import { AlertasStockPanel } from './AlertasStockPanel';
 import './catalogo.css';
 
 export function InventarioPage() {
   const { user } = useAuth();
-  const [tabActiva, setTabActiva] = useState('catalogo'); // 'catalogo' | 'entradas' | 'alertas'
+  const [searchParams] = useSearchParams();
+  const [tabActiva, setTabActiva] = useState(searchParams.get('tab') === 'alertas' ? 'alertas' : 'catalogo'); // 'catalogo' | 'entradas' | 'alertas'
   const esAdmin = user?.role === 'ADMINISTRADOR';
 
   // Estados de modales y recargas
@@ -285,38 +288,7 @@ export function InventarioPage() {
         </div>
       )}
 
-      {tabActiva === 'alertas' && esAdmin && (
-        <div className="panel-card" style={{ padding: '32px' }}>
-          <div style={{
-            backgroundColor: '#FFFDF7',
-            border: '1.5px dashed #FCA5A5',
-            borderRadius: '16px',
-            padding: '36px 24px',
-            textAlign: 'center',
-            color: '#532009'
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              backgroundColor: '#FEE2E2',
-              color: '#DC2626',
-              borderRadius: '16px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <AlertTriangle size={32} />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 8px 0', color: '#2B1810' }}>
-              Panel de Alertas de Stock Bajo y Agotados
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#877468', maxWidth: '600px', margin: '0 auto 20px auto', lineHeight: '1.5' }}>
-              Espacio donde Camilo conectará el listado de productos críticos donde <code>stock_actual &lt;= stock_minimo_alerta</code> y productos agotados (HU-0604).
-            </p>
-          </div>
-        </div>
-      )}
+      {tabActiva === 'alertas' && esAdmin && <AlertasStockPanel key={refreshTrigger} />}
 
       {/* MODAL DE ENTRADA DE STOCK (HU-0601 y HU-0602) */}
       <EntradaStockModal 

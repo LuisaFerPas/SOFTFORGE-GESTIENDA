@@ -134,3 +134,19 @@
   font-size: 0.75rem; 
   color: var(--color-error, #e74c3c); 
 }
+/* SD-66/67: panel accesible de alertas */
+.estado-stock-badge { display: inline-flex; border-radius: 999px; padding: 4px 10px; font-size: .8rem; font-weight: 700; white-space: nowrap; }
+.alertas-stock-panel { padding: 24px; background: #fffdfa; border: 1px solid #f3e6da; border-radius: 16px; }
+.alertas-stock-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.alertas-stock-header h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.2rem; }
+.alertas-stock-header button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; cursor: pointer; }
+.alertas-stock-controles { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin: 20px 0; }
+.alertas-stock-filtros { display: flex; gap: 8px; flex-wrap: wrap; }
+.alertas-filtro { background: #fff; border: 1px solid #e6c7b0; border-radius: 8px; padding: 9px 12px; color: #713d19; cursor: pointer; }
+.alertas-filtro.activo { background: #ff6600; border-color: #ff6600; color: white; font-weight: 700; }
+.alertas-stock-controles input { padding: 9px 12px; border: 1px solid #dabd9e; border-radius: 8px; min-width: 200px; flex: 1; }
+.alertas-tabla-wrapper { width: 100%; overflow-x: auto; }
+.alertas-tabla { width: 100%; border-collapse: collapse; text-align: left; }
+.alertas-tabla th, .alertas-tabla td { padding: 12px; border-bottom: 1px solid #f0e4d8; }
+.alertas-tabla th { background: #fff5e9; }
+.alertas-tabla td small { display: block; color: #78675b; margin-top: 4px; }

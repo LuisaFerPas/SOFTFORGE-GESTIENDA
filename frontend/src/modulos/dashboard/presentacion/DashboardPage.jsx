@@ -5,10 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { TarjetasKPI } from './TarjetasKPI';
 import { PanelStockBajo } from './PanelStockBajo';
 import { PanelVentasRecientes } from './PanelVentasRecientes';
+import { useAlertasStock } from '../hooks/useAlertasStock';
 
 export function DashboardPage() {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { alertas, cargando, error } = useAlertasStock(isAdmin);
 
   const today = new Date();
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -51,11 +53,11 @@ export function DashboardPage() {
       </div>
 
       {/* Grid de Tarjetas KPI */}
-      <TarjetasKPI />
+      <TarjetasKPI alertas={alertas} alertasCargando={cargando} alertasError={error} />
 
       {/* Paneles Inferiores: Stock bajo (solo admin - HU-0105) y Ventas recientes */}
       <section className="bottom-grid" style={{ gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr' }}>
-        {isAdmin && <PanelStockBajo />}
+        {isAdmin && <PanelStockBajo alertas={alertas} cargando={cargando} error={error} />}
         <PanelVentasRecientes />
       </section>
     </div>
