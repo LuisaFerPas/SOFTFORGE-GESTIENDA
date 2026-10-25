@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle, ArrowDown, ArrowLeft, ArrowRight, BadgeCheck,
-  CircleHelp, Keyboard, Lightbulb, LoaderCircle, Minus, PackageSearch,
+  CircleHelp, FileText, Keyboard, Lightbulb, LoaderCircle, Minus, PackageSearch,
   Plus, RotateCcw, Search, ShieldCheck, ShoppingBag, ShoppingCart,
   Trash2, X
 } from 'lucide-react';
@@ -11,6 +11,7 @@ import { PanelCobro } from './componentes/PanelCobro';
 import { ConfirmacionVentaDialog } from './ConfirmacionVentaDialog';
 import { PreguntaFacturaDialog } from './PreguntaFacturaDialog';
 import './VentasPage.css';
+import './POSContraste.css';
 
 const formato = (valor) => new Intl.NumberFormat('es-CO', {
   style: 'currency', currency: 'COP', maximumFractionDigits: 0
@@ -45,6 +46,7 @@ export function VentasPage() {
   const [transferenciaVerificada, setTransferenciaVerificada] = useState(false);
   const [error, setError] = useState('');
   const [confirmacion, setConfirmacion] = useState(null);
+  const [facturaGenerada, setFacturaGenerada] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [dialogoAbierto, setDialogoAbierto] = useState(false);
   const [preguntarFactura, setPreguntarFactura] = useState(false);
@@ -93,13 +95,14 @@ export function VentasPage() {
   }, [aviso]);
 
   useEffect(() => {
-    if (confirmacion) {
+    // Al aparecer el diálogo de factura no mover el foco fuera de él.
+    if (confirmacion && !preguntarFactura) {
       requestAnimationFrame(() => {
         desplazarA(exitoRef.current);
         exitoRef.current?.focus({ preventScroll: true });
       });
     }
-  }, [confirmacion]);
+  }, [confirmacion, preguntarFactura]);
 
   const encontrados = useMemo(() => {
     const termino = normalizar(busqueda);
@@ -143,6 +146,7 @@ export function VentasPage() {
       ? actual.map((item) => item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item)
       : [...actual, { ...producto, cantidad: 1 }]);
     setConfirmacion(null);
+    setFacturaGenerada(null);
     setError('');
     setAviso(`${producto.nombre} agregado al carrito`);
     if (carrito.length === 0 && window.matchMedia?.('(max-width: 800px)').matches) {
@@ -243,7 +247,8 @@ export function VentasPage() {
           (medioPago === 'EFECTIVO' ? Number(montoRecibido) - total : 0)
       });
       setDialogoAbierto(false);
-      setPreguntarFactura(true); // SD-114: preguntar tras la venta exitosa, sin imprimir hasta HU-0401.
+      setFacturaGenerada(null);
+      setPreguntarFactura(true); // SD-121: preguntar, NO emitir hasta la confirmación explícita.
       setCarrito([]);
       setBusqueda('');
       setMontoRecibido('');
@@ -317,6 +322,15 @@ export function VentasPage() {
             {confirmacion.medioPago === 'EFECTIVO' && Number(confirmacion.cambio) > 0 && (
               <p className="pos-success-change">Cambio para entregar: <strong>{formato(confirmacion.cambio)}</strong></p>
             )}
+            {facturaGenerada ? (
+              <p className="pos-success-invoice"><FileText size={16} aria-hidden="true" />
+                Factura <strong>{facturaGenerada.consecutivo}</strong> registrada (sin impresión física).</p>
+            ) : (
+              <button type="button" className="pos-invoice-reopen"
+                onClick={() => setPreguntarFactura(true)}>
+                <FileText size={16} /> ¿Necesitas factura para esta venta?
+              </button>
+            )}
             <p>Puedes comenzar otra venta.</p>
             {confirmacion.advertencias?.map((a) => (
               <p key={a.productoId} className="pos-stock-alert">Aviso de inventario: {a.nombre} — {a.mensaje}</p>
@@ -324,6 +338,7 @@ export function VentasPage() {
           </div>
           <button type="button" className="pos-link-action" onClick={() => {
             setConfirmacion(null);
+            setFacturaGenerada(null);
             desplazarA(buscadorRef.current);
             buscadorRef.current?.focus({ preventScroll: true });
           }}>Nueva venta <ArrowRight size={17} /></button>
@@ -491,8 +506,14 @@ export function VentasPage() {
         onCancelar={() => { if (!cargando) setDialogoAbierto(false); }}
         onConfirmar={confirmarRegistro}
       />
-      <PreguntaFacturaDialog abierto={preguntarFactura}
+      <PreguntaFacturaDialog
+        abierto={preguntarFactura}
+        ventaId={confirmacion?.id}
         onCerrar={() => setPreguntarFactura(false)}
+        onGenerada={(factura) => {
+          setFacturaGenerada(factura);
+          setAviso(`Factura ${factura.consecutivo} registrada correctamente`);
+        }}
       />
       <div className="pos-announcer" role="status" aria-live="polite" aria-atomic="true">{aviso}</div>
     </div>

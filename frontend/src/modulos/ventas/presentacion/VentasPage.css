@@ -257,3 +257,101 @@
 .pos-payment-feedback--error > div { display:flex; flex-direction:column; gap:4px; }
 .pos-payment-feedback--error strong { margin-left:0; font-size:13px; }
 .pos-payment-feedback--error span { font-size:12px; line-height:1.45; }
+
+/* SD-121 — Guía de generación de facturas, compatible con el tema cálido. */
+.pos-invoice-label { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-size:13px; font-weight:800; color:#513526; margin:14px 0 7px; }
+.pos-invoice-label small {font-size:11px; font-weight:600; color:#867367; }
+.pos-invoice-input { width:100%; min-height:46px; background:#fff; border:1.5px solid #d8bea8; border-radius:11px; font-size:14px; padding:11px 13px; color:#342218; transition:border-color .16s,box-shadow .16s; }
+.pos-invoice-input:focus-visible {outline:3px solid rgba(255,102,0,.24);outline-offset:1px;border-color:#ff6600;}
+.pos-invoice-hint {font-size:12px; color:#806f65; margin-top:7px;}
+.pos-invoice-steps {display:flex; flex-wrap:wrap; gap:9px; align-items:center; margin-bottom:13px;}
+.pos-invoice-step {display:inline-flex;align-items:center;gap:6px;background:#eaf7ec;color:#206642;border-radius:100px;padding:8px 11px;font-size:11px;font-weight:750;}
+.pos-invoice-step--active {background:#fff0df;color:#a3480c;}
+.pos-invoice-disclaimer {display:flex;align-items:flex-start;gap:10px;margin-top:16px;font-size:12px;line-height:1.55;}
+.pos-invoice-disclaimer svg {flex-shrink:0;margin-top:2px;}
+.pos-invoice-disclaimer p {margin:0;}
+.pos-invoice-success {display:flex;align-items:flex-start;gap:12px;border:1.5px solid #a6d8b5;background:#e9f8ee;color:#145d36;padding:16px;border-radius:13px;animation:pos-enter .22s ease-out;}
+.pos-invoice-success > svg {flex-shrink:0;}
+.pos-invoice-success strong {font-weight:900;font-size:20px;}
+.pos-invoice-success p {font-size:12px;margin-top:5px;}
+.pos-invoice-error {display:flex;align-items:flex-start;gap:9px;border:1.5px solid #e9b5a5;background:#fff0ed;color:#932d20;padding:11px 13px;border-radius:11px;margin-top:13px;font-size:12px;animation:pos-enter .2s ease-out;}
+.pos-invoice-error svg {flex-shrink:0;}
+.pos-invoice-error strong {font-size:13px;}
+.pos-invoice-error p {margin-top:5px;line-height:1.5;}
+.pos-invoice-reopen {display:inline-flex;align-items:center;gap:8px; margin:10px 0 4px;border:1px solid #a6d8b5;background:#fff;color:#145d36;padding:9px 12px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;}
+.pos-invoice-reopen:hover {background:#e0f4e8;}
+.pos-invoice-reopen:focus-visible {outline:3px solid #94cba9;outline-offset:2px;}
+.pos-success-invoice {display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:9px 0 4px!important;color:#17623c;font-size:12px;}
+.pos-success-invoice strong {font-weight:900;}
+@media(prefers-reduced-motion:reduce){.pos-invoice-error,.pos-invoice-success{animation:none!important;}}
+
+/* GESTIENDA: CONTRASTE AISLADO DEL POS - INICIO */
+/* Los selectores estan limitados al punto de venta; no usan :root, body ni etiquetas globales. */
+.pos {
+  --pos-ink: #27190f;
+  --pos-sub: #694c3a;
+  --pos-border: #d2aa8d;
+}
+.pos .pos-progress {
+  background: #fff2e5;
+  border: 1.5px solid #e5bf9e;
+}
+.pos .pos-progress-step { color: #765744; }
+.pos .pos-progress-step--active { color: #964000; }
+.pos .pos-card {
+  border: 1.8px solid #d9b79d;
+  box-shadow: 0 8px 25px rgba(65, 33, 14, .08);
+}
+.pos .pos-catalog { background: #fffefd; }
+.pos .pos-cart { background: #fff8f1; border-color: #d1a280; }
+.pos .pos-checkout-card { background: #ffffff; border-color: #ca9b7a; }
+.pos .pos-section-head h2 { color: #2d1a0f; }
+.pos .pos-section-head p { color: #674b3a; }
+.pos .pos-product {
+  background: #ffffff;
+  border-color: #d5b397;
+  box-shadow: 0 3px 7px rgba(62, 29, 9, .04);
+}
+.pos .pos-product:hover:not(:disabled) {
+  border-color: #c75a0c;
+  background: #fff4e9;
+  box-shadow: 0 10px 23px rgba(111, 50, 14, .15);
+}
+.pos .pos-product-code, .pos .pos-method-sub,
+.pos .pos-secure-note, .pos .pos-search-hint { color: #735544; }
+.pos .pos-method { border-color: #d1ad92; background: #fff; }
+.pos .pos-method--active {
+  background: #ffead8;
+  border: 2px solid #d35400;
+  box-shadow: 0 0 0 2px rgba(211, 84, 0, .12);
+}
+.pos .pos-money-field { border-color: #be977c; }
+.pos .pos-money-field input::placeholder { color: #7b6253; }
+.pos .pos-amount-chip { border-color: #cc9f7e; color: #863800; }
+.pos .pos-amount-chip:hover:not(:disabled) {
+  background: #ffe8d1;
+  border-color: #c35400;
+}
+.pos .pos-confirm-button:disabled {
+  background: #ded1c5;
+  color: #513c2c;
+  border: 1px solid #baa08b;
+  opacity: 1;
+  box-shadow: none;
+}
+.pos .pos-confirm-button:not(:disabled) {
+  background: #df5800;
+  color: #fff;
+}
+.pos .pos-help-inline summary { color: #8d410b; font-size: 12px; }
+.pos .pos-payment-feedback--success { color: #14512e; border-color: #91c9a4; }
+.pos .pos-total-box { border-color: #dfaa80; background: #ffecd9; }
+/* Menu lateral: colores propios del menu, sin intervenir el resto de la aplicacion. */
+.sidebar .nav-link:not(.active),
+.sidebar .nav-link:not(.active) span,
+.sidebar .logout-button,
+.sidebar .logout-button span { color: #f3ddca; }
+.sidebar .nav-link.active,
+.sidebar .nav-link.active span { color: #351906; }
+.sidebar .brand-subtitle, .sidebar .user-role { color: #e9c3aa; }
+/* GESTIENDA: CONTRASTE AISLADO DEL POS - FIN */

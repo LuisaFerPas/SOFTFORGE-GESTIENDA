@@ -1,0 +1,111 @@
+/* Historial de facturas: estilos aislados. Ninguna regla global afecta otros módulos. */
+.fh-page { max-width:1450px; margin:0 auto; padding-bottom:64px; color:#302019; }
+.fh-page button, .fh-page input, .fh-page select { font:inherit; }
+.fh-page button { cursor:pointer; }
+.fh-page button:disabled { opacity:.5; cursor:not-allowed; }
+.fh-page :is(button,input,select):focus-visible, .fh-modal button:focus-visible { outline:3px solid #ff9b50; outline-offset:3px; }
+.fh-header { display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom:20px; }
+.fh-eyebrow { display:flex; align-items:center; gap:8px; color:#a54808; font-size:12px; font-weight:800; letter-spacing:.07em; }
+.fh-header h1 { margin:7px 0 8px; font-size:clamp(25px,2.5vw,35px); line-height:1.15; font-weight:850; color:#281912; }
+.fh-header p { font-size:14px; color:#674b39; max-width:650px; }
+.fh-refresh { display:inline-flex; align-items:center; gap:9px; padding:11px 15px; color:#a84400; background:white; border:1.5px solid #d4ab8d; border-radius:12px; font-weight:800; }
+.fh-refresh:hover { background:#fff1e4; }
+.fh-summary { display:flex; gap:16px; align-items:center; border:1.5px solid #dbae8b; background:linear-gradient(115deg,#fff1e5,#fffaf6); border-radius:17px; padding:18px 21px; margin-bottom:17px; box-shadow:0 7px 19px rgba(90,45,13,.04); }
+.fh-summary-icon { width:54px; height:54px; display:grid; place-items:center; flex-shrink:0; background:#ffe0c6; color:#a44108; border-radius:14px; }
+.fh-summary > div:nth-child(2) { display:flex; flex-direction:column; gap:2px; }
+.fh-summary span { color:#724a31; font-size:12px; font-weight:750; }
+.fh-summary strong { color:#923807; font-size:27px; line-height:1; }
+.fh-summary p { margin-left:auto; max-width:420px; color:#6d5140; font-size:12px; line-height:1.55; }
+.fh-card { background:#fff; border:1.5px solid #d6b59e; border-radius:17px; box-shadow:0 8px 24px rgba(75,41,22,.05); overflow:hidden; }
+.fh-toolbar { display:flex; align-items:end; gap:15px; padding:20px; border-bottom:1px solid #ead9cc; flex-wrap:wrap; background:#fffcf9; }
+.fh-search { display:flex; align-items:center; gap:11px; flex:1; min-width:min(100%,250px); background:#fff; border:1.7px solid #bda18a; border-radius:12px; padding:0 12px; color:#91532e; }
+.fh-search:focus-within { border-color:#e36915; box-shadow:0 0 0 3px #ffe0c7; }
+.fh-search input { flex:1; min-width:0; height:45px; background:transparent; outline:0; border:0; color:#281a11; font-size:14px; }
+.fh-search input::placeholder { color:#806657; opacity:1; }
+.fh-filter { display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:750; color:#60412f; }
+.fh-filter select { min-width:176px; height:46px; border:1.5px solid #c5a68f; border-radius:11px; background:#fff; color:#342115; padding:0 12px; }
+.fh-table-wrap { overflow-x:auto; }
+.fh-table { width:100%; border-collapse:collapse; min-width:810px; }
+.fh-table th { text-align:left; white-space:nowrap; padding:14px 16px; color:#5b3b28; background:#fff0e4; font-size:12px; font-weight:800; border-bottom:1.5px solid #dfbda3; }
+.fh-table td { padding:15px 16px; vertical-align:middle; border-bottom:1px solid #eedfd4; font-size:13px; color:#34261b; }
+.fh-table tbody tr:nth-child(even) { background:#fffcfa; }
+.fh-table tbody tr:hover { background:#fff6ed; }
+.fh-consecutivo { color:#983c08; font-size:14px; display:block; }
+.fh-table td small { display:block; margin-top:4px; font-size:11px; color:#735441; }
+.fh-client { font-weight:650; color:#312116; }
+.fh-date { display:inline-flex; align-items:center; gap:7px; color:#634b3d; }
+.fh-money { white-space:nowrap; color:#80360b !important; font-weight:850; font-size:15px !important; }
+.fh-status { display:inline-flex; align-items:center; gap:5px; padding:5px 9px; white-space:nowrap; border-radius:100px; font-size:10px; font-weight:850; letter-spacing:.03em; }
+.fh-status--ok { background:#e5f7eb; color:#17663a; border:1px solid #95d2a7; }
+.fh-status--cancel { background:#fff0eb; color:#9e2d1b; border:1px solid #eac0b3; }
+.fh-actions { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; }
+.fh-view { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 10px; font-size:12px !important; border-radius:10px; background:#fff; color:#843807; border:1.5px solid #bc977b; font-weight:800; }
+.fh-view:hover:not(:disabled) { background:#fff0e4; border-color:#bb621f; }
+.fh-page .pos-reimpresion { min-width:120px; }
+.fh-page .pos-reimpresion__boton { min-height:36px; }
+.fh-page .pos-reimpresion__mensaje { max-width:210px; overflow-wrap:anywhere; }
+.fh-pagination { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:15px 19px; color:#694b38; font-size:12px; font-weight:700; }
+.fh-pagination > div { display:flex; align-items:center; gap:8px; }
+.fh-pagination button { display:inline-flex; align-items:center; gap:5px; background:white; color:#883c0d; border:1px solid #cfa98e; border-radius:9px; padding:9px 12px; font-size:12px; font-weight:800; }
+.fh-pagination button:hover:not(:disabled) { background:#fff0e4; }
+.fh-state { min-height:260px; display:flex; align-items:center; justify-content:center; text-align:center; flex-direction:column; gap:11px; color:#a24c11; padding:30px; }
+.fh-state strong, .fh-state b { color:#382419; font-size:16px; }
+.fh-state p { color:#755844; font-size:13px; }
+.fh-error { display:flex; align-items:center; flex-wrap:wrap; gap:9px; background:#fff1ee; color:#952d1a; border:1px solid #e7b3aa; margin:18px; border-radius:11px; padding:13px; }
+.fh-error button { margin-left:auto; background:white; border:1px solid #dfaca2; border-radius:7px; padding:5px 10px; color:#8d2114; }
+.fh-footer-note { margin-top:16px; font-size:12px; line-height:1.5; color:#684e3c; display:flex; align-items:center; gap:8px; }
+.fh-floating-status, .fh-floating-error { position:fixed; right:22px; bottom:20px; z-index:2100; display:flex; align-items:center; gap:8px; border-radius:12px; padding:13px 15px; background:#3a2114; color:#fff; box-shadow:0 12px 30px #37211644; }
+.fh-floating-error { background:#fff0eb; color:#942c18; border:1px solid #d58f80; }
+.fh-floating-error button { border:0; background:transparent; color:inherit; cursor:pointer; }
+.fh-rotate { animation:fh-turn 1s linear infinite; }
+@keyframes fh-turn { to { transform:rotate(360deg); } }
+.fh-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:1900; padding:15px; background:rgba(30,17,9,.68); backdrop-filter:blur(3px); }
+.fh-modal { width:min(610px,100%); max-height:92vh; display:flex; flex-direction:column; border:1.5px solid #c9a688; background:#fffdfb; color:#2b2018; border-radius:20px; box-shadow:0 25px 90px #170a0670; overflow:hidden; animation:fh-appear .22s ease-out; }
+@keyframes fh-appear { from {opacity:0; transform:translateY(10px)} to {opacity:1;transform:translateY(0)} }
+.fh-modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; padding:18px 20px; background:#fff7ef; border-bottom:1px solid #e1cab8; }
+.fh-modal-identity { display:flex; align-items:center; gap:12px; }
+.fh-modal-symbol { width:45px; height:45px; border-radius:12px; background:#ffe3ca; color:#9d4809; display:grid; place-items:center; flex-shrink:0; }
+.fh-modal-head h2 { margin:2px 0; font-size:23px; font-weight:900; color:#362217; }
+.fh-modal-head p:not(.fh-overline) { font-size:12px; color:#72513d; }
+.fh-overline { font-weight:900; color:#a4470a; font-size:10px; letter-spacing:.11em; }
+.fh-icon-button { border:1px solid #d3b59b; background:#fff; color:#674330; border-radius:9px; width:36px; height:36px; display:grid; place-items:center; cursor:pointer; }
+.fh-icon-button:hover { background:#ffe8d4; }
+.fh-modal-body { overflow:auto; padding:19px 22px; }
+.fh-ticket { max-width:450px; margin:0 auto; padding:22px 24px; background:#fff; border:1.5px solid #cfae96; box-shadow:0 3px 19px #3620110c; border-radius:11px; }
+.fh-ticket-heading { display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:18px; text-align:center; }
+.fh-ticket-logo { width:47px; height:47px; display:grid; place-items:center; border-radius:12px; color:#fff; background:#e96510; font-size:15px; font-weight:900; }
+.fh-ticket-heading strong { color:#282019; font-size:18px; }
+.fh-ticket-heading span { color:#665040; font-size:11px; }
+.fh-ticket-pair { display:flex; gap:15px; align-items:baseline; justify-content:space-between; padding:6px 0; font-size:12px; }
+.fh-ticket-pair span { color:#765a45; }
+.fh-ticket-pair b { color:#342319; text-align:right; max-width:65%; overflow-wrap:anywhere; }
+.fh-ticket-items { border-top:1px dashed #ba947a; border-bottom:1px dashed #ba947a; margin-top:14px; padding:8px 0; }
+.fh-ticket-columns { display:flex; justify-content:space-between; color:#704c34; font-size:11px; font-weight:800; padding:6px 0; }
+.fh-ticket-item { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:8px 0; font-size:12px; }
+.fh-ticket-item > div { display:flex; flex-direction:column; gap:3px; }
+.fh-ticket-item strong { font-weight:800; color:#352318; }
+.fh-ticket-item small { color:#735646; }
+.fh-ticket-item > b { white-space:nowrap; color:#7d3409; }
+.fh-ticket-total { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:15px 0; font-weight:900; color:#302016; }
+.fh-ticket-total strong { font-size:24px; color:#9c400c; }
+.fh-ticket-footer { text-align:center; font-size:12px; font-weight:800; color:#513728; padding-top:19px; }
+.fh-ticket-legal { text-align:center; color:#665040; font-size:10px; line-height:1.5; margin-top:12px; }
+.fh-print-notice { display:flex; align-items:flex-start; gap:10px; margin:15px auto 0; max-width:450px; padding:12px; background:#fff1df; border:1px solid #e3be91; border-radius:10px; color:#724415; font-size:12px; line-height:1.55; }
+.fh-print-notice svg { flex-shrink:0; }
+.fh-modal-footer { display:flex; justify-content:flex-end; gap:10px; padding:15px 21px; border-top:1px solid #e6d0bb; background:#fffaf5; }
+.fh-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:11px 14px; border-radius:10px; border:1.5px solid transparent; font-size:13px; font-weight:800; cursor:pointer; }
+.fh-btn--subtle { background:#fff; color:#63412f; border-color:#c9a68a; }
+.fh-btn--primary { background:#e95e04; color:#fff; border-color:#d75500; }
+.fh-btn--primary:hover:not(:disabled) { background:#bc4800; }
+.fh-btn:disabled { opacity:.5; cursor:not-allowed; }
+@media(max-width:680px) { .fh-summary {align-items:flex-start;flex-wrap:wrap;} .fh-summary p {margin-left:0;max-width:100%;} .fh-toolbar {padding:14px;} .fh-modal-body {padding:12px;} .fh-modal-footer {flex-direction:column-reverse;} .fh-btn {width:100%;} .fh-header {align-items:flex-start;} }
+@media(prefers-reduced-motion:reduce) { .fh-rotate, .fh-modal { animation:none; } }
+/* Imprimir únicamente el comprobante: 80 mm para impresora térmica o PDF. */
+@media print {
+  @page { size:80mm auto; margin:3mm; }
+  body * { visibility:hidden !important; }
+  #historial-impresion, #historial-impresion * { visibility:visible !important; }
+  #historial-impresion { position:fixed !important; top:0 !important; left:0 !important; width:74mm !important; max-width:none !important; padding:2mm !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; color:#000 !important; }
+  #historial-impresion * { color:#000 !important; background:transparent !important; }
+  #historial-impresion .fh-ticket-logo { border:2px solid #000; }
+}

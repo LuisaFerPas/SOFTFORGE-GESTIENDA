@@ -1,36 +1,16 @@
 import { apiFetch } from '../../../compartido/servicios/apiCliente.js';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Productos (usados desde el módulo de ventas para búsqueda en caja)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Busca un producto por código de barras o código interno.
- * HU-0300.8
- * @param {string} codigo
- */
+/** Busca un producto por código de barras o interno. */
 export async function buscarProductoPorCodigo(codigo) {
   return apiFetch(`/inventario/productos/codigo/${encodeURIComponent(codigo)}`);
 }
 
-/**
- * Busca productos por nombre (autocompletado en caja).
- * HU-0300.8
- * @param {string} nombre
- */
+/** Busca productos por nombre. Se conserva el contrato existente. */
 export async function buscarProductosPorNombre(nombre) {
   return apiFetch(`/inventario/productos/buscar?q=${encodeURIComponent(nombre)}`);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Ventas
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Registra una venta nueva.
- * HU-0300.8 — alias semántico de crearVentaApi.
- * @param {{ items: Array, medioPago: string, montoRecibido?: number, montoEfectivo?: number, montoNequi?: number }} datosVenta
- */
+/** Registra una venta nueva. */
 export async function registrarVenta(datosVenta) {
   return apiFetch('/ventas', {
     method: 'POST',
@@ -38,52 +18,60 @@ export async function registrarVenta(datosVenta) {
   });
 }
 
-/**
- * Alias mantenido por compatibilidad con el código existente de Camilo.
- * @param {object} datosVenta
- */
+/** Alias de compatibilidad para la pantalla antigua de ventas. */
 export async function crearVentaApi(datosVenta) {
   return registrarVenta(datosVenta);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Facturación
-// ─────────────────────────────────────────────────────────────────────────────
-
 /**
- * Genera (o asocia) una factura a una venta existente.
- * HU-0300.8 — stub; la lógica real la implementa el equipo en HE-04.
- * @param {number} ventaId
- * @param {{ nombreCliente?: string }} [datosFactura={}]
+ * SD-121 / HU-0401.3: genera una factura SOLO después del consentimiento del cajero.
+ * Reutiliza SD-120: POST /api/ventas/facturas con JWT gestionado por apiFetch.
+ *
+ * @param {number} ventaId - ID obtenido del POST /api/ventas.
+ * @param {string|{nombreCliente?:string}} nombreCliente - Nombre opcional.
+ * @returns {Promise<{success:boolean,data:object}>}
  */
-export async function generarFactura(ventaId, datosFactura = {}) {
-  return apiFetch(`/ventas/${ventaId}/factura`, {
+export async function generarFactura(ventaId, nombreCliente = 'Consumidor Final') {
+  const datos = typeof nombreCliente === 'string'
+    ? { nombreCliente }
+    : (nombreCliente ?? {});
+
+  return apiFetch('/ventas/facturas', {
     method: 'POST',
-    body: JSON.stringify(datosFactura),
+    body: JSON.stringify({ ventaId, nombreCliente: datos.nombreCliente ?? 'Consumidor Final' }),
   });
 }
 
 /**
- * Solicita la reimpresión de la factura de una venta.
- * HU-0300.8 — stub; la lógica real (impresora térmica) la implementa el equipo.
- * @param {number} ventaId
+ * SD-123 / HU-0405.2: solicita los datos de una factura por consecutivo.
+ * Endpoint: POST /api/ventas/facturas/:consecutivo/reimprimir.
+ *
+ * apiFetch adjunta el JWT e informa errores HTTP mediante excepciones.
+ * El endpoint actual devuelve los datos para reimpresión, pero NO imprime
+ * físicamente: revisa data.impresionRealizada antes de informar al cajero.
+ *
+ * @param {string} consecutivo - Ejemplo: "F-0001".
+ * @returns {Promise<{success: boolean, message?: string, data: object}>}
  */
-export async function reimprimirFactura(ventaId) {
-  return apiFetch(`/ventas/${ventaId}/reimprimir`, {
+export async function reimprimirFactura(consecutivo) {
+  if (typeof consecutivo !== 'string') {
+    throw new Error('El consecutivo debe tener el formato F-0001.');
+  }
+
+  const numero = consecutivo.trim().toUpperCase();
+  if (!/^F-[0-9]{4,}$/.test(numero)) {
+    throw new Error('El consecutivo debe tener el formato F-0001.');
+  }
+
+  return apiFetch(`/ventas/facturas/${encodeURIComponent(numero)}/reimprimir`, {
     method: 'POST',
   });
 }
 
-/**
- * Edita los datos de una factura ya emitida (ej. nombre del cliente).
- * HU-0300.8 — stub; la lógica real la implementa el equipo en HE-04.
- * @param {number} ventaId
- * @param {{ nombreCliente?: string, estado?: string }} datos
- */
+/** Edición de factura heredada; su endpoint corresponde a otra historia. */
 export async function editarFactura(ventaId, datos) {
   return apiFetch(`/ventas/${ventaId}/factura`, {
     method: 'PATCH',
     body: JSON.stringify(datos),
   });
 }
-
