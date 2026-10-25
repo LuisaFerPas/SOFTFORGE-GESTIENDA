@@ -23,7 +23,7 @@ import { StockController } from './modulos/inventario/presentacion/stockControll
 import { crearInventarioRoutes } from './modulos/inventario/presentacion/inventarioRoutes.js';
 
 // Módulo: Ventas & Facturación
-import { VentaRepository } from './modulos/ventas/dominio/VentaRepository.js';
+import { SQLiteVentaRepository } from './modulos/ventas/infraestructura/persistencia/SQLiteVentaRepository.js';
 import { VentaService } from './modulos/ventas/servicios/VentaService.js';
 import { FacturacionService } from './modulos/ventas/servicios/FacturacionService.js';
 import { VentaController } from './modulos/ventas/presentacion/ventaController.js';
@@ -85,7 +85,7 @@ const stockController = new StockController(stockService); // <-- NUEVA INSTANCI
 app.use('/api/inventario', crearInventarioRoutes(productoController, stockController));
 
 // -- Módulo Ventas
-const ventaRepository = new VentaRepository(db);
+const ventaRepository = new SQLiteVentaRepository(db);
 const impresoraAdapter = new ImpresoraTermicaAdapter();
 const ventaService = new VentaService(ventaRepository, eventBus);
 const facturacionService = new FacturacionService(ventaRepository, impresoraAdapter);
