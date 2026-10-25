@@ -29,6 +29,7 @@ import { VentaService } from './modulos/ventas/servicios/VentaService.js';
 import { FacturacionService } from './modulos/ventas/servicios/FacturacionService.js';
 import { VentaController } from './modulos/ventas/presentacion/ventaController.js';
 import { crearVentasRoutes } from './modulos/ventas/presentacion/ventasRoutes.js';
+import { crearConsultaFacturasRoutes } from './modulos/ventas/presentacion/consultaFacturasRoutes.js';
 
 // Módulo: Apartados
 import { ApartadoRepository } from './modulos/apartados/dominio/ApartadoRepository.js';
@@ -89,6 +90,7 @@ const ventaService = new VentaService(ventaRepository, eventBus, stockVentasServ
 const facturacionService = new FacturacionService(ventaRepository, impresoraAdapter);
 const ventaController = new VentaController(ventaService, facturacionService);
 app.use('/api/ventas', crearVentasRoutes(ventaController));
+app.use('/api/ventas/facturas', crearConsultaFacturasRoutes(db));
 
 // Módulo Apartados
 const apartadoRepository = new ApartadoRepository();

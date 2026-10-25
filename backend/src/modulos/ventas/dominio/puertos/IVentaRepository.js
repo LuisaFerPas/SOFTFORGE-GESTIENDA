@@ -26,6 +26,11 @@ export class IVentaRepository {
     throw new Error('IVentaRepository.listarDelDia() no implementado.');
   }
 
+  /** Emite una factura con consecutivo asignado por la persistencia. */
+  async guardarFactura(factura) {
+    throw new Error('IVentaRepository.guardarFactura() no implementado.');
+  }
+
   async buscarFacturaPorConsecutivo(consecutivo) {
     throw new Error('IVentaRepository.buscarFacturaPorConsecutivo() no implementado.');
   }

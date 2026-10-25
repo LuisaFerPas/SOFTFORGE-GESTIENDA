@@ -151,6 +151,51 @@ export class SQLiteVentaRepository extends IVentaRepository {
     `).all(fecha).map((fila) => VentaMapper.aEntidad(fila));
   }
 
+  /**
+   * SD-119: crea la factura y asigna un consecutivo F-XXXX de forma atómica.
+   * BEGIN IMMEDIATE impide que dos emisiones reserven el mismo número.
+   * No se imprime ningún documento en este paso.
+   */
+  async guardarFactura(factura) {
+    const db = this.db;
+    db.exec('BEGIN IMMEDIATE TRANSACTION');
+    try {
+      const venta = db.prepare('SELECT id FROM sales WHERE id = ?').get(factura.ventaId);
+      if (!venta) throw new Error('La venta indicada no existe.');
+
+      const yaExiste = db.prepare('SELECT id FROM facturas WHERE venta_id = ?')
+        .get(factura.ventaId);
+      if (yaExiste) throw new Error('La venta ya tiene una factura registrada.');
+
+      // Se toma el mayor consecutivo numérico, no el ID de la venta ni
+      // un conteo de facturas, para evitar colisiones ante ventas sin factura.
+      const { ultimo } = db.prepare(`
+        SELECT COALESCE(MAX(CAST(SUBSTR(consecutivo, 3) AS INTEGER)), 0) AS ultimo
+        FROM facturas
+        WHERE consecutivo GLOB 'F-[0-9]*'
+      `).get();
+      const siguiente = Number(ultimo) + 1;
+      if (!Number.isSafeInteger(siguiente)) {
+        throw new Error('Se agotó el rango de consecutivos de factura.');
+      }
+      factura.consecutivo = `F-${String(siguiente).padStart(4, '0')}`;
+      const fila = FacturaMapper.aFilaDB(factura);
+      const { lastInsertRowid } = db.prepare(`
+        INSERT INTO facturas
+          (venta_id, consecutivo, nombre_cliente, fecha_emision, estado)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(fila.venta_id, fila.consecutivo, fila.nombre_cliente,
+        fila.fecha_emision, fila.estado);
+      const guardada = db.prepare('SELECT * FROM facturas WHERE id = ?')
+        .get(Number(lastInsertRowid));
+      db.exec('COMMIT');
+      return FacturaMapper.aEntidad(guardada);
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  }
+
   async buscarFacturaPorConsecutivo(consecutivo) {
     const fila = this.db.prepare('SELECT * FROM facturas WHERE consecutivo = ?').get(consecutivo);
     return fila ? FacturaMapper.aEntidad(fila) : null;
