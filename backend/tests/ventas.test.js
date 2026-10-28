@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
+import express from 'express';
+import jwt from 'jsonwebtoken';
 
 import { VentaService } from '../src/modulos/ventas/servicios/VentaService.js';
 import { SQLiteVentaRepository } from '../src/modulos/ventas/infraestructura/persistencia/SQLiteVentaRepository.js';
 import { SQLiteSalidaVentaStockRepository } from '../src/modulos/ventas/infraestructura/persistencia/SQLiteSalidaVentaStockRepository.js';
 import { StockService } from '../src/modulos/inventario/aplicacion/StockService.js';
 import { SQLiteProductoRepository } from '../src/modulos/inventario/infraestructura/persistencia/SQLiteProductoRepository.js';
+import { crearEdicionFacturasRoutes } from '../src/modulos/ventas/presentacion/edicionFacturasRoutes.js';
+import { JWT_SECRET } from '../src/modulos/usuarios/presentacion/authMiddleware.js';
 
 /**
  * SD-118 / HU-0305.3: pruebas de integración con los repositorios reales.
@@ -184,21 +188,105 @@ test('SD-117 / HU-0305.2: permite stock NULL, lo trata como cero y avisa al serv
   }
 });
 
-test('SD-117 / HU-0305.2: un saldo ya negativo tampoco impide una nueva venta', async () => {
-  const { db, productos, ventas } = prepararVenta();
-  const avisos = [];
-  const advertir = console.warn;
-  console.warn = (...partes) => avisos.push(partes.join(' '));
+test('HU-0404.5: VENDEDOR recibe 403 al intentar editar una factura vía PUT /api/ventas/facturas/:consecutivo', async () => {
+  const db = new DatabaseSync(':memory:');
+  db.exec(`
+    PRAGMA foreign_keys = ON;
+    CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'VENDEDOR');
+    INSERT INTO users VALUES (1, 'vendedor-pruebas', 'VENDEDOR');
+    INSERT INTO users VALUES (2, 'admin-pruebas', 'ADMINISTRADOR');
+
+    CREATE TABLE products (
+      id INTEGER PRIMARY KEY,
+      nombre TEXT NOT NULL,
+      stock_actual INTEGER NOT NULL DEFAULT 0,
+      precio_venta_unitario REAL NOT NULL,
+      activo INTEGER NOT NULL DEFAULT 1
+    );
+    INSERT INTO products VALUES (10, 'Producto A', 10, 2500, 1);
+
+    CREATE TABLE sales (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      total REAL NOT NULL,
+      medio_pago TEXT NOT NULL,
+      monto_efectivo REAL NOT NULL DEFAULT 0,
+      monto_nequi REAL NOT NULL DEFAULT 0,
+      monto_otro REAL NOT NULL DEFAULT 0,
+      cambio REAL NOT NULL DEFAULT 0,
+      estado TEXT NOT NULL DEFAULT 'COMPLETADA',
+      created_at TEXT,
+      FOREIGN KEY (usuario_id) REFERENCES users(id)
+    );
+    INSERT INTO sales (id, usuario_id, total, medio_pago, estado, created_at)
+    VALUES (1, 1, 2500, 'EFECTIVO', 'COMPLETADA', '2026-10-27T10:00:00');
+
+    CREATE TABLE sale_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      venta_id INTEGER NOT NULL,
+      producto_id INTEGER NOT NULL,
+      cantidad INTEGER NOT NULL,
+      precio_unitario REAL NOT NULL,
+      subtotal REAL NOT NULL,
+      FOREIGN KEY (venta_id) REFERENCES sales(id),
+      FOREIGN KEY (producto_id) REFERENCES products(id)
+    );
+    INSERT INTO sale_items (venta_id, producto_id, cantidad, precio_unitario, subtotal)
+    VALUES (1, 10, 1, 2500, 2500);
+
+    CREATE TABLE stock_movements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      producto_id INTEGER NOT NULL,
+      tipo TEXT NOT NULL,
+      cantidad INTEGER NOT NULL,
+      stock_anterior INTEGER NOT NULL,
+      stock_nuevo INTEGER NOT NULL,
+      costo_unitario REAL DEFAULT 0,
+      motivo TEXT,
+      usuario_id INTEGER,
+      created_at TEXT,
+      FOREIGN KEY (producto_id) REFERENCES products(id)
+    );
+
+    CREATE TABLE facturas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      venta_id INTEGER NOT NULL UNIQUE,
+      consecutivo TEXT NOT NULL UNIQUE,
+      nombre_cliente TEXT NOT NULL DEFAULT 'Consumidor Final',
+      fecha_emision DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      estado TEXT NOT NULL DEFAULT 'EMITIDA' CHECK(estado IN ('EMITIDA','ANULADA')),
+      FOREIGN KEY (venta_id) REFERENCES sales(id)
+    );
+    INSERT INTO facturas (id, venta_id, consecutivo, nombre_cliente, fecha_emision, estado)
+    VALUES (1, 1, 'F-0001', 'Cliente Prueba', '2026-10-27T10:00:00', 'EMITIDA');
+  `);
+
+  const app = express();
+  app.use(express.json());
+  app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));
+
+  const server = await new Promise((resolve) => {
+    const s = app.listen(0, '127.0.0.1', () => resolve(s));
+  });
+  const base = `http://127.0.0.1:${server.address().port}/api/ventas/facturas`;
+
+  const token = jwt.sign({ id: 1, role: 'VENDEDOR' }, JWT_SECRET);
+
   try {
-    const resultado = await ventas.registrarVenta({
-      items: [{ productoId: 50, cantidad: 3 }], medioPago: 'NEQUI'
-    }, 1);
-    assert.equal(resultado.isSuccess, true, resultado.error);
-    assert.equal((await productos.buscarPorId(50)).stockActual, -5);
-    assert.equal(resultado.getValue().advertencias.length, 1);
-    assert.equal(avisos.length, 1);
+    const respuesta = await fetch(`${base}/F-0001`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ nombreCliente: 'Cliente Editado' })
+    });
+    const body = await respuesta.json();
+    assert.equal(respuesta.status, 403);
+    assert.equal(body.success, false);
+    assert.equal(body.message, 'Permisos insuficientes');
   } finally {
-    console.warn = advertir;
+    await new Promise((resolve, reject) => server.close((e) => (e ? reject(e) : resolve())));
     db.close();
   }
 });

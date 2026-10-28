@@ -172,7 +172,7 @@ export function HistorialFacturasPage() {
 
   const cerrarDetalle = useCallback(() => setDetalle(null), []);
 
-  function facturaActualizada(datos) {
+  function facturaEditada(datos) {
     const anterior = datos?.anulada?.consecutivo;
     const nueva = datos?.nueva?.consecutivo;
     setAviso(anterior && nueva
@@ -231,7 +231,7 @@ export function HistorialFacturasPage() {
                   <td><div className="fh-actions">
                     <button type="button" className="fh-view" disabled={cargandoDetalle} onClick={() => abrirDetalle(f.consecutivo)}><FileText size={16}/> Visualizar</button>
                     <ReimprimirFacturaButton factura={f} onPreparada={abrirDetalle}/>
-                    {isAdmin && <EditarFacturaButton factura={f} onActualizada={facturaActualizada}/>}
+                    {isAdmin && <EditarFacturaButton factura={f} onEditada={facturaEditada}/>}
                     {isAdmin && <ReutilizarVentaButton factura={f}/>}
                   </div></td>
                 </tr>
