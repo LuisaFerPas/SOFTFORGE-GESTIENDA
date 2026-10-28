@@ -166,6 +166,8 @@
 .pos-back-search { align-self:center; display:flex; align-items:center; gap:8px; border:0; background:transparent; color:#9a5221; font-size:12px; font-weight:700; padding:9px; }
 .pos-back-search:hover { text-decoration:underline; }
 .pos-notice { display:flex; gap:12px; align-items:flex-start; background:#fff1ed; border:1px solid #f7c9be; border-radius:13px; padding:15px; color:#922d19; margin-bottom:20px; }
+.pos-notice--info { background:#eef6ff; border-color:#c2d8ee; color:#234d76; }
+.pos-notice--info strong { color:#1d4368; }
 .pos-notice > svg { flex-shrink:0; }
 .pos-notice div { flex:1; }
 .pos-notice strong { font-size:13px; }

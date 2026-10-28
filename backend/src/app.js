@@ -30,6 +30,7 @@ import { FacturacionService } from './modulos/ventas/servicios/FacturacionServic
 import { VentaController } from './modulos/ventas/presentacion/ventaController.js';
 import { crearVentasRoutes } from './modulos/ventas/presentacion/ventasRoutes.js';
 import { crearConsultaFacturasRoutes } from './modulos/ventas/presentacion/consultaFacturasRoutes.js';
+import { crearEdicionFacturasRoutes } from './modulos/ventas/presentacion/edicionFacturasRoutes.js';
 
 // Módulo: Apartados
 import { ApartadoRepository } from './modulos/apartados/dominio/ApartadoRepository.js';
@@ -91,6 +92,7 @@ const facturacionService = new FacturacionService(ventaRepository, impresoraAdap
 const ventaController = new VentaController(ventaService, facturacionService);
 app.use('/api/ventas', crearVentasRoutes(ventaController));
 app.use('/api/ventas/facturas', crearConsultaFacturasRoutes(db));
+app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));
 
 // Módulo Apartados
 const apartadoRepository = new ApartadoRepository();

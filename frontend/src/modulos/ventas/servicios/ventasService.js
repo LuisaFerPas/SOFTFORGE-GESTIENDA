@@ -68,10 +68,35 @@ export async function reimprimirFactura(consecutivo) {
   });
 }
 
-/** Edición de factura heredada; su endpoint corresponde a otra historia. */
-export async function editarFactura(ventaId, datos) {
-  return apiFetch(`/ventas/${ventaId}/factura`, {
-    method: 'PATCH',
-    body: JSON.stringify(datos),
+/** HU-0404 Fase A: corrige el nombre del cliente de una factura emitida. */
+export async function editarFactura(consecutivo, { nombreCliente } = {}) {
+  if (typeof consecutivo !== 'string') {
+    throw new Error('El consecutivo debe tener el formato F-0001.');
+  }
+
+  const numero = consecutivo.trim().toUpperCase();
+  if (!/^F-[0-9]{4,}$/.test(numero)) {
+    throw new Error('El consecutivo debe tener el formato F-0001.');
+  }
+
+  return apiFetch(`/ventas/facturas/${encodeURIComponent(numero)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ nombreCliente }),
+  });
+}
+
+/** HU-0404 Fase B: anula la venta/factura y devuelve los ítems para el POS. */
+export async function anularYCargarCarrito(consecutivo) {
+  if (typeof consecutivo !== 'string') {
+    throw new Error('El consecutivo debe tener el formato F-0001.');
+  }
+
+  const numero = consecutivo.trim().toUpperCase();
+  if (!/^F-[0-9]{4,}$/.test(numero)) {
+    throw new Error('El consecutivo debe tener el formato F-0001.');
+  }
+
+  return apiFetch(`/ventas/facturas/${encodeURIComponent(numero)}/reutilizar`, {
+    method: 'POST',
   });
 }

@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertCircle, ArrowDown, ArrowLeft, ArrowRight, BadgeCheck,
   CircleHelp, FileText, Keyboard, Lightbulb, LoaderCircle, PackageSearch,
-  Plus, Search, ShieldCheck, ShoppingBag, ShoppingCart, X
+  Plus, RotateCcw, Search, ShieldCheck, ShoppingBag, ShoppingCart, X
 } from 'lucide-react';
 import { listarProductosApi } from '../../inventario/servicios/inventarioService';
 import { registrarVenta } from '../servicios/ventasService';
 import { PanelCobro } from './componentes/PanelCobro';
 import { CarritoVenta } from './componentes/CarritoVenta';
+import { mapearPrecargaCarrito } from './componentes/precargaCarrito';
 import { ConfirmacionVentaDialog } from './ConfirmacionVentaDialog';
 import { PreguntaFacturaDialog } from './PreguntaFacturaDialog';
 import './VentasPage.css';
@@ -34,6 +36,8 @@ function desplazarA(elemento) {
 
 /** SD-113: experiencia POS. La persistencia sigue a cargo de registrarVenta(). */
 export function VentasPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -53,12 +57,14 @@ export function VentasPage() {
   const envioEnCursoRef = useRef(false);
   const [ayudaAbierta, setAyudaAbierta] = useState(false);
   const [aviso, setAviso] = useState('');
+  const [precargaInfo, setPrecargaInfo] = useState(null);
 
   const buscadorRef = useRef(null);
   const carritoRef = useRef(null);
   const pagoRef = useRef(null);
   const exitoRef = useRef(null);
   const errorRef = useRef(null);
+  const precargaProcesadaRef = useRef(false);
 
   useEffect(() => {
     let activo = true;
@@ -72,6 +78,33 @@ export function VentasPage() {
       .finally(() => { if (activo) setCargandoCatalogo(false); });
     return () => { activo = false; };
   }, []);
+
+  useEffect(() => {
+    const precarga = location.state?.carritoPrecargado;
+    if (!precarga || precargaProcesadaRef.current) return;
+    precargaProcesadaRef.current = true;
+
+    const resultado = mapearPrecargaCarrito(precarga);
+    if (resultado.items.length) {
+      setCarrito(resultado.items);
+      setPrecargaInfo(resultado);
+      setAviso(`Carrito precargado desde ${resultado.consecutivo || 'la factura anulada'}`);
+      setError('');
+      setConfirmacion(null);
+      setFacturaGenerada(null);
+      setPreguntarFactura(false);
+      setBusqueda('');
+      setMedioPago('EFECTIVO');
+      setMontoRecibido('');
+      setMontoEfectivo('');
+      setMontoNequi('');
+      setTransferenciaVerificada(false);
+    } else {
+      setError('No se pudieron recuperar los productos de la factura. Revisa el inventario antes de reintentar.');
+    }
+
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location, navigate]);
 
   useEffect(() => {
     function alPresionar(evento) {
@@ -175,6 +208,7 @@ export function VentasPage() {
     setMontoNequi('');
     setTransferenciaVerificada(false);
     setError('');
+    setPrecargaInfo(null);
     setAviso('Carrito vacío');
   }
 
@@ -256,6 +290,7 @@ export function VentasPage() {
       setMontoNequi('');
       setTransferenciaVerificada(false);
       setMedioPago('EFECTIVO');
+      setPrecargaInfo(null);
       setAviso('Venta registrada correctamente');
     } catch (err) {
       // Conservar el carrito y los montos para que el cajero pueda corregir.
@@ -303,6 +338,23 @@ export function VentasPage() {
             <p className="pos-guide-shortcut"><Keyboard size={15} /> Atajo: pulsa <kbd>F2</kbd> o <kbd>/</kbd> para volver al buscador.</p>
           </div>
           <button type="button" className="pos-icon-button" aria-label="Cerrar guía" onClick={() => setAyudaAbierta(false)}><X size={18} /></button>
+        </section>
+      )}
+
+      {precargaInfo && (
+        <section className="pos-notice pos-notice--info" role="status">
+          <RotateCcw size={21} aria-hidden="true" />
+          <div>
+            <strong>Carrito precargado desde la factura {precargaInfo.consecutivo || 'anulada'}</strong>
+            <p>La venta y la factura originales quedaron anuladas. Revisa los productos y ajusta cantidades antes de cobrar.</p>
+            {precargaInfo.preciosActualizados && (
+              <p>Algunos precios se actualizaron a los vigentes del catálogo.</p>
+            )}
+            <p>La nueva factura solo se generará si confirmas la emisión al finalizar la venta.</p>
+          </div>
+          <button type="button" onClick={() => setPrecargaInfo(null)} aria-label="Cerrar aviso de precarga">
+            <X size={18} />
+          </button>
         </section>
       )}
 

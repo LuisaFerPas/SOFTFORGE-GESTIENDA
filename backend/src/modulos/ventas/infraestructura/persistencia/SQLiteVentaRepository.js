@@ -147,7 +147,10 @@ export class SQLiteVentaRepository extends IVentaRepository {
 
   async listarDelDia(fecha) {
     return this.db.prepare(`
-      SELECT * FROM sales WHERE substr(created_at, 1, 10) = ? ORDER BY created_at DESC
+      SELECT * FROM sales
+      WHERE substr(created_at, 1, 10) = ?
+        AND COALESCE(estado, 'COMPLETADA') <> 'ANULADA'
+      ORDER BY created_at DESC
     `).all(fecha).map((fila) => VentaMapper.aEntidad(fila));
   }
 

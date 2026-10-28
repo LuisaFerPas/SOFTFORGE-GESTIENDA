@@ -30,9 +30,11 @@ export class SQLiteFacturaConsultaRepository {
     const offset = (paginaN - 1) * limiteN;
     const filas = this.db.prepare(`
       SELECT f.id, f.venta_id, f.consecutivo, f.nombre_cliente,
-        f.fecha_emision, f.estado, s.total, s.medio_pago, s.created_at AS fecha_venta
+        f.fecha_emision, f.estado, s.total, s.medio_pago, s.created_at AS fecha_venta,
+        COALESCE(u.username, 'No disponible') AS vendedor
       FROM facturas f
       JOIN sales s ON s.id = f.venta_id
+      LEFT JOIN users u ON u.id = s.usuario_id
       ${where}
       ORDER BY f.id DESC LIMIT ? OFFSET ?
     `).all(...parametros, limiteN, offset);
@@ -54,9 +56,11 @@ export class SQLiteFacturaConsultaRepository {
       SELECT f.id, f.venta_id, f.consecutivo, f.nombre_cliente,
         f.fecha_emision, f.estado, s.total, s.medio_pago,
         s.monto_efectivo, s.monto_nequi, s.monto_otro, s.cambio,
-        s.created_at AS fecha_venta
+        s.created_at AS fecha_venta,
+        COALESCE(u.username, 'No disponible') AS vendedor
       FROM facturas f
       JOIN sales s ON s.id = f.venta_id
+      LEFT JOIN users u ON u.id = s.usuario_id
       WHERE f.consecutivo = ?
     `).get(numero);
     if (!fila) return null;
@@ -89,7 +93,8 @@ export class SQLiteFacturaConsultaRepository {
       id: Number(f.id), ventaId: Number(f.venta_id),
       consecutivo: f.consecutivo, nombreCliente: f.nombre_cliente,
       fechaEmision: f.fecha_emision, fechaVenta: f.fecha_venta,
-      estado: f.estado, total: Number(f.total), medioPago: f.medio_pago
+      estado: f.estado, total: Number(f.total), medioPago: f.medio_pago,
+      vendedor: f.vendedor ?? 'No disponible'
     };
   }
 }

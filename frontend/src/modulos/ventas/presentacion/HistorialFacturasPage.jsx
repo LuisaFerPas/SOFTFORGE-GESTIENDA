@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  AlertCircle, ArrowLeft, ArrowRight, CalendarDays, Check, CircleHelp,
+  AlertCircle, ArrowLeft, ArrowRight, CalendarDays, Check, CheckCircle2, CircleHelp,
   FileSearch, FileText, LoaderCircle, Printer, ReceiptText, RefreshCw,
   Search, ShoppingBag, X
 } from 'lucide-react';
 import { listarFacturas, consultarFactura } from '../servicios/consultaFacturasService';
+import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { ReimprimirFacturaButton } from './componentes/ReimprimirFacturaButton';
+import { EditarFacturaButton } from './componentes/EditarFacturaButton';
+import { ReutilizarVentaButton } from './componentes/ReutilizarVentaButton';
 import './HistorialFacturasPage.css';
 
 const dinero = (valor) => new Intl.NumberFormat('es-CO', {
@@ -107,6 +110,7 @@ function VistaFactura({ factura, onCerrar }) {
 }
 
 export function HistorialFacturasPage() {
+  const { isAdmin } = useAuth();
   const [busqueda, setBusqueda] = useState('');
   const [consulta, setConsulta] = useState('');
   const [estado, setEstado] = useState('');
@@ -121,6 +125,13 @@ export function HistorialFacturasPage() {
   const secuenciaRef = useRef(0);
   const secuenciaDetalleRef = useRef(0);
   const [revision, setRevision] = useState(0);
+  const [aviso, setAviso] = useState('');
+
+  useEffect(() => {
+    if (!aviso) return undefined;
+    const temporizador = window.setTimeout(() => setAviso(''), 5200);
+    return () => window.clearTimeout(temporizador);
+  }, [aviso]);
 
   useEffect(() => {
     const temporizador = setTimeout(() => {
@@ -161,6 +172,15 @@ export function HistorialFacturasPage() {
 
   const cerrarDetalle = useCallback(() => setDetalle(null), []);
 
+  function facturaActualizada(datos) {
+    const anterior = datos?.anulada?.consecutivo;
+    const nueva = datos?.nueva?.consecutivo;
+    setAviso(anterior && nueva
+      ? `Factura ${anterior} corregida. Nueva factura ${nueva}.`
+      : 'Factura corregida correctamente.');
+    setRevision((actual) => actual + 1);
+  }
+
   return (
     <main className="fh-page">
       <header className="fh-header">
@@ -199,17 +219,20 @@ export function HistorialFacturasPage() {
         {!error && !cargando && facturas.length > 0 && <>
           <div className="fh-table-wrap">
             <table className="fh-table">
-              <thead><tr><th>Factura</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>Factura</th><th>Cliente</th><th>Vendedor</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
               <tbody>{facturas.map(f => (
                 <tr key={f.id}>
                   <td><strong className="fh-consecutivo">{f.consecutivo}</strong><small>Venta #{f.ventaId}</small></td>
                   <td><span className="fh-client">{f.nombreCliente}</span></td>
+                  <td><span className="fh-client">{f.vendedor || '—'}</span></td>
                   <td><span className="fh-date"><CalendarDays size={14}/> {fechaLegible(f.fechaEmision)}</span></td>
                   <td className="fh-money">{dinero(f.total)}</td>
                   <td><span className={`fh-status ${f.estado === 'EMITIDA' ? 'fh-status--ok' : 'fh-status--cancel'}`}>{f.estado === 'EMITIDA' ? <Check size={13}/> : <X size={13}/>} {f.estado}</span></td>
                   <td><div className="fh-actions">
                     <button type="button" className="fh-view" disabled={cargandoDetalle} onClick={() => abrirDetalle(f.consecutivo)}><FileText size={16}/> Visualizar</button>
                     <ReimprimirFacturaButton factura={f} onPreparada={abrirDetalle}/>
+                    {isAdmin && <EditarFacturaButton factura={f} onActualizada={facturaActualizada}/>}
+                    {isAdmin && <ReutilizarVentaButton factura={f}/>}
                   </div></td>
                 </tr>
               ))}</tbody>
@@ -227,6 +250,7 @@ export function HistorialFacturasPage() {
       <p className="fh-footer-note"><ShoppingBag size={17}/> ¿No aparece una venta? Solo las ventas para las que se confirmó «Sí, imprimir» tienen factura registrada.</p>
       {cargandoDetalle && <div className="fh-floating-status" role="status"><LoaderCircle className="fh-rotate" size={18}/> Cargando detalle…</div>}
       {errorDetalle && <div className="fh-floating-error" role="alert"><AlertCircle size={18}/>{errorDetalle}<button type="button" onClick={()=>setErrorDetalle('')} aria-label="Cerrar error"><X size={16}/></button></div>}
+      {aviso && <div className="fh-floating-success" role="status"><CheckCircle2 size={18}/>{aviso}</div>}
       {detalle && <VistaFactura factura={detalle} onCerrar={cerrarDetalle}/>}
     </main>
   );
