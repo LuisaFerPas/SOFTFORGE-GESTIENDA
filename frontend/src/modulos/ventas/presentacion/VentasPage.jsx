@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle, ArrowDown, ArrowLeft, ArrowRight, BadgeCheck,
-  CircleHelp, FileText, Keyboard, Lightbulb, LoaderCircle, Minus, PackageSearch,
-  Plus, RotateCcw, Search, ShieldCheck, ShoppingBag, ShoppingCart,
-  Trash2, X
+  CircleHelp, FileText, Keyboard, Lightbulb, LoaderCircle, PackageSearch,
+  Plus, Search, ShieldCheck, ShoppingBag, ShoppingCart, X
 } from 'lucide-react';
 import { listarProductosApi } from '../../inventario/servicios/inventarioService';
 import { registrarVenta } from '../servicios/ventasService';
 import { PanelCobro } from './componentes/PanelCobro';
+import { CarritoVenta } from './componentes/CarritoVenta';
 import { ConfirmacionVentaDialog } from './ConfirmacionVentaDialog';
 import { PreguntaFacturaDialog } from './PreguntaFacturaDialog';
 import './VentasPage.css';
@@ -423,45 +423,18 @@ export function VentasPage() {
               </div>
               <span className="pos-cart-count">{unidades} unidad{unidades === 1 ? '' : 'es'}</span>
             </div>
-            {carrito.length === 0 ? (
-              <div className="pos-cart-empty">
-                <div><ShoppingCart size={29} /></div>
-                <strong>Aún no hay productos</strong>
-                <p>Busca un producto y pulsa su tarjeta para añadirlo.</p>
-                <button type="button" onClick={() => { desplazarA(buscadorRef.current); buscadorRef.current?.focus({ preventScroll: true }); }}>
-                  <Search size={16} /> Buscar productos
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="pos-cart-list">
-                  {carrito.map((item) => (
-                    <div className="pos-cart-item" key={item.id}>
-                      <div className="pos-cart-item-top">
-                        <div><strong>{item.nombre}</strong><small>{formato(item.precioVentaUnitario)} / unidad</small></div>
-                        <button type="button" className="pos-trash" disabled={cargando} title={`Quitar ${item.nombre}`}
-                          aria-label={`Quitar ${item.nombre} del carrito`} onClick={() => eliminar(item.id)}><Trash2 size={18} /></button>
-                      </div>
-                      <div className="pos-cart-item-bottom">
-                        <div className="pos-quantity" aria-label={`Cantidad de ${item.nombre}`}>
-                          <button type="button" disabled={cargando || item.cantidad <= 1}
-                            aria-label={`Disminuir cantidad de ${item.nombre}`} onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}><Minus size={16} /></button>
-                          <input type="number" inputMode="numeric" min="1" step="1"
-                            aria-label={`Cantidad de ${item.nombre}`} disabled={cargando}
-                            value={item.cantidad} onChange={(e) => cambiarCantidad(item.id, e.target.value)} />
-                          <button type="button" disabled={cargando}
-                            aria-label={`Aumentar cantidad de ${item.nombre}`} onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}><Plus size={16} /></button>
-                        </div>
-                        <strong>{formato(item.cantidad * item.precioVentaUnitario)}</strong>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button type="button" className="pos-clear-cart" onClick={limpiarCarrito} disabled={cargando}>
-                  <RotateCcw size={15} /> Vaciar carrito
-                </button>
-              </>
-            )}
+            <CarritoVenta
+              items={carrito}
+              onCambiarCantidad={cambiarCantidad}
+              onEliminar={eliminar}
+              onVaciar={limpiarCarrito}
+              onBuscar={() => {
+                desplazarA(buscadorRef.current);
+                buscadorRef.current?.focus({ preventScroll: true });
+              }}
+              deshabilitado={cargando}
+              formato={formato}
+            />
             <div className="pos-total-box"><span>Total a pagar</span><strong>{formato(total)}</strong></div>
             {carrito.length > 0 && (
               <button className="pos-jump-to-pay" type="button" onClick={irACobrar}>
