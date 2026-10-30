@@ -77,8 +77,22 @@ function LineaCarrito({ item, onCambiarCantidad, onEliminar, deshabilitado, form
           title={`Quitar ${item.nombre}`}
           aria-label={`Quitar ${item.nombre} del carrito`}
           onClick={() => onEliminar?.(item.id)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            color: '#b91c1c',
+            backgroundColor: '#fee2e2',
+            border: '1.5px solid #fecaca',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
         >
-          <Trash2 size={18} />
+          <Trash2 size={16} />
+          <span>Quitar</span>
         </button>
       </div>
       <div className="pos-cart-item-bottom">

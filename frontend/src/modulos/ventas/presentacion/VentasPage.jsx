@@ -10,7 +10,8 @@ import { registrarVenta, buscarProductoPorCodigo } from '../servicios/ventasServ
 import { PanelCobro } from './componentes/PanelCobro';
 import { CarritoVenta } from './componentes/CarritoVenta';
 import { mapearPrecargaCarrito } from './componentes/precargaCarrito';
-import { InputCodigoBarras } from './componentes/InputCodigoBarras'; // <-- NUEVO COMPONENTE
+import { InputCodigoBarras } from './componentes/InputCodigoBarras';
+import { BuscadorNombre } from './componentes/BuscadorNombre';
 import { ConfirmacionVentaDialog } from './ConfirmacionVentaDialog';
 import { PreguntaFacturaDialog } from './PreguntaFacturaDialog';
 import './VentasPage.css';
@@ -147,9 +148,17 @@ export function VentasPage() {
   const visibles = mostrarTodos || busqueda.trim() ? encontrados.slice(0, 40) : encontrados.slice(0, 12);
   const unidades = carrito.reduce((suma, item) => suma + item.cantidad, 0);
   const total = carrito.reduce((suma, item) => suma + Number(item.precioVentaUnitario) * item.cantidad, 0);
+  const strRecibido = String(montoRecibido ?? '').trim();
+  const tieneCeroDelante = /^0\d+/.test(strRecibido) || (strRecibido.startsWith('0') && strRecibido.length > 1);
+  const strEfec = String(montoEfectivo ?? '').trim();
+  const strNeq  = String(montoNequi ?? '').trim();
+  const tieneCeroDelanteMixto = /^0\d+/.test(strEfec) || (strEfec.startsWith('0') && strEfec.length > 1) ||
+                                /^0\d+/.test(strNeq) || (strNeq.startsWith('0') && strNeq.length > 1);
+
   const precioValido = Number.isFinite(total) && total > 0;
-  const efectivoValido = montoValido(montoRecibido) && Number(montoRecibido) >= total;
+  const efectivoValido = montoValido(montoRecibido) && Number(montoRecibido) >= total && !tieneCeroDelante;
   const mixtoValido = esPositivo(montoEfectivo) && esPositivo(montoNequi)
+    && !tieneCeroDelanteMixto
     && Math.abs(Number(montoEfectivo) + Number(montoNequi) - total) < 0.01;
   const pagoValido = medioPago === 'EFECTIVO' ? efectivoValido
     : (medioPago === 'NEQUI' || medioPago === 'OTRO') ? transferenciaVerificada
@@ -158,12 +167,15 @@ export function VentasPage() {
 
   let ayudaCobro = 'Agrega productos para comenzar.';
   if (carrito.length > 0) {
-    if (medioPago === 'EFECTIVO' && !efectivoValido) {
+    if (medioPago === 'EFECTIVO' && tieneCeroDelante) {
+      ayudaCobro = 'Error: El monto recibido no puede tener un 0 delante.';
+    } else if (medioPago === 'EFECTIVO' && !efectivoValido) {
       ayudaCobro = montoValido(montoRecibido) && Number(montoRecibido) < total
         ? 'El monto recibido es insuficiente. Ingresa un valor igual o superior al total.'
         : 'Ingresa un monto recibido igual o superior al total.';
     }
     else if ((medioPago === 'NEQUI' || medioPago === 'OTRO') && !transferenciaVerificada) ayudaCobro = 'Verifica el pago electrónico en la cuenta y marca la casilla.';
+    else if (medioPago === 'MIXTO' && tieneCeroDelanteMixto) ayudaCobro = 'Error: Los montos de pago no pueden tener un 0 delante.';
     else if (medioPago === 'MIXTO' && !mixtoValido) ayudaCobro = 'Los dos montos deben ser positivos y sumar el total exacto.';
     else if (medioPago === 'MIXTO' && !transferenciaVerificada) ayudaCobro = 'Verifica la transferencia y marca la casilla.';
     else ayudaCobro = 'Todo listo. Revisa el resumen y registra la venta.';
@@ -437,6 +449,19 @@ export function VentasPage() {
             <InputCodigoBarras 
               onBuscar={handleEscanearCodigo} 
               deshabilitado={cargando} 
+            />
+          </div>
+
+          {/* ========================================================= */}
+          {/* HU-0302: Búsqueda reactiva de productos por nombre        */}
+          {/* ========================================================= */}
+          <div style={{ marginBottom: '15px' }}>
+            <BuscadorNombre 
+              onAgregar={(prod, cant) => {
+                for (let i = 0; i < (cant || 1); i++) {
+                  agregar(prod);
+                }
+              }} 
             />
           </div>
 

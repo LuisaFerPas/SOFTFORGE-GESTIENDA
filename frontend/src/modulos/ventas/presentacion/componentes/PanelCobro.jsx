@@ -33,7 +33,14 @@ export function PanelCobro({
     { id: 'MIXTO', nombre: 'Mixto', subtitulo: 'Efectivo + Nequi', Icono: WalletCards }
   ];
 
-  const recibidoValido = cantidadValida(montoRecibido);
+  const strRecibido = String(montoRecibido || '').trim();
+  const tieneCeroDelante = /^0\d+/.test(strRecibido) || (strRecibido.startsWith('0') && strRecibido.length > 1);
+  const strEfec = String(montoEfectivo || '').trim();
+  const strNeq  = String(montoNequi || '').trim();
+  const tieneCeroDelanteMixto = /^0\d+/.test(strEfec) || (strEfec.startsWith('0') && strEfec.length > 1) ||
+                                /^0\d+/.test(strNeq) || (strNeq.startsWith('0') && strNeq.length > 1);
+
+  const recibidoValido = cantidadValida(montoRecibido) && !tieneCeroDelante;
   const efectivo = cantidadValida(montoEfectivo) ? Number(montoEfectivo) : 0;
   const nequi = cantidadValida(montoNequi) ? Number(montoNequi) : 0;
   const sumaMixta = efectivo + nequi;
@@ -43,7 +50,7 @@ export function PanelCobro({
   const falta = recibidoValido && Number(montoRecibido) < total
     ? total - Number(montoRecibido) : null;
   const mixtoCompleto = cantidadValida(montoEfectivo) && cantidadValida(montoNequi)
-    && efectivo > 0 && nequi > 0 && Math.abs(diferencia) < 0.01;
+    && !tieneCeroDelanteMixto && efectivo > 0 && nequi > 0 && Math.abs(diferencia) < 0.01;
 
   const sugeridos = [...new Set([total, 10000, 20000, 50000, 100000])]
     .filter((valor) => valor > 0 && valor >= total)
@@ -113,14 +120,23 @@ export function PanelCobro({
                 </button>
               ))}
             </div>
-            {cambio !== null && (
+            {tieneCeroDelante && (
+              <div id="pos-recibido-cero-error" className="pos-payment-feedback pos-payment-feedback--error" role="alert">
+                <AlertCircle size={20} aria-hidden="true" />
+                <div>
+                  <strong>Error en monto recibido</strong>
+                  <span>El monto recibido no puede tener un 0 delante.</span>
+                </div>
+              </div>
+            )}
+            {cambio !== null && !tieneCeroDelante && (
               <div className="pos-payment-feedback pos-payment-feedback--success" role="status">
                 <CheckCircle2 size={19} />
                 <span>Cambio a entregar</span>
                 <strong>{formato(cambio)}</strong>
               </div>
             )}
-            {falta !== null && (
+            {falta !== null && !tieneCeroDelante && (
               <div id="pos-recibido-error" className="pos-payment-feedback pos-payment-feedback--error" role="alert">
                 <AlertCircle size={20} aria-hidden="true" />
                 <div>
@@ -170,6 +186,15 @@ export function PanelCobro({
                 </div>
               </div>
             </div>
+            {tieneCeroDelanteMixto && (
+              <div className="pos-payment-feedback pos-payment-feedback--error" role="alert" style={{ marginTop: 8 }}>
+                <AlertCircle size={20} aria-hidden="true" />
+                <div>
+                  <strong>Error en montos</strong>
+                  <span>Los montos de pago no pueden tener un 0 delante.</span>
+                </div>
+              </div>
+            )}
             <div className={`pos-payment-feedback ${mixtoCompleto ? 'pos-payment-feedback--success' : 'pos-payment-feedback--neutral'}`} role="status">
               <span>{mixtoCompleto ? 'Monto cubierto correctamente' : diferencia > 0 ? 'Falta por completar' : diferencia < 0 ? 'Monto excedente' : 'Ingresa valores en ambos medios'}</span>
               {(mixtoCompleto || Math.abs(diferencia) >= 0.01) && <strong>{formato(mixtoCompleto ? sumaMixta : Math.abs(diferencia))}</strong>}

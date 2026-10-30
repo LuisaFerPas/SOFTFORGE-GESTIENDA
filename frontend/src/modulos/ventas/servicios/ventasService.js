@@ -100,3 +100,29 @@ export async function anularYCargarCarrito(consecutivo) {
     method: 'POST',
   });
 }
+
+// ── HU-0302: Búsqueda de productos por nombre desde módulo de ventas ──────────
+export async function buscarProductosPorNombreApi(nombre) {
+  const q = encodeURIComponent((nombre || '').trim());
+  return apiFetch(`/ventas/productos/buscar?nombre=${q}`);
+}
+
+// ── HU-0403: Facturación con nombre de cliente opcional ───────────────────────
+export async function generarFacturaApi(ventaId, nombreCliente = null) {
+  return apiFetch('/ventas/facturas', {
+    method: 'POST',
+    body: JSON.stringify({ ventaId, nombreCliente: nombreCliente || 'Consumidor Final' })
+  });
+}
+
+export async function buscarFacturaApi(consecutivo) {
+  return apiFetch(`/ventas/facturas/${encodeURIComponent(consecutivo)}`);
+}
+
+// ── HU-0402: Impresión física directa ─────────────────────────────────────────
+export async function generarEImprimirFacturaApi(ventaId, nombreCliente = 'Consumidor Final') {
+  return apiFetch('/ventas/facturas/imprimir', {
+    method: 'POST',
+    body: JSON.stringify({ ventaId, nombreCliente: nombreCliente || 'Consumidor Final' }),
+  });
+}

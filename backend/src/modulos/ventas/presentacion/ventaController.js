@@ -1,8 +1,10 @@
 export class VentaController {
-  constructor(ventaService, facturacionService, productoRepository) {
+  constructor(ventaService, facturacionService, productoRepository, productoService = null, db = null) {
     this.ventaService = ventaService;
     this.facturacionService = facturacionService;
-    this.productoRepository = productoRepository; 
+    this.productoRepository = productoRepository;
+    this.productoService = productoService;
+    this.db = db;
   }
 
   // SD-111/112: POST /api/ventas con el usuario autenticado por verifyToken.
@@ -171,5 +173,54 @@ export class VentaController {
       console.error('[Facturación] Error al imprimir:', error);
       return res.status(500).json({ success: false, message: 'Error interno al imprimir la factura.' });
     }
+  }
+
+  /**
+   * HU-0302: Búsqueda de productos por nombre para el módulo de ventas.
+   * GET /api/ventas/productos/buscar?nombre=X
+   */
+  async buscarProductosPorNombre(req, res) {
+    const { nombre = '' } = req.query;
+    const rolUsuario = req.user?.role || 'VENDEDOR';
+
+    if (!nombre.trim()) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    if (!this.productoService) {
+      return res.status(500).json({ success: false, message: 'ProductoService no disponible.' });
+    }
+
+    const resultado = await this.productoService.listarProductos({
+      filtros: { search: nombre.trim() },
+      rolUsuario
+    });
+
+    if (resultado.isFailure) {
+      return res.status(400).json({ success: false, message: resultado.error });
+    }
+
+    return res.status(200).json({ success: true, data: resultado.getValue() });
+  }
+
+  /**
+   * HU-0403: Generar factura con nombre de cliente opcional.
+   * POST /api/ventas/facturas
+   */
+  async generarFactura(req, res) {
+    return this.crearFactura(req, res);
+  }
+
+  /**
+   * HU-0403: Buscar factura ya emitida por consecutivo.
+   * GET /api/ventas/facturas/:consecutivo
+   */
+  async buscarFactura(req, res) {
+    const { consecutivo } = req.params;
+    const resultado = await this.facturacionService.prepararReimpresion(consecutivo);
+    if (resultado.isFailure) {
+      return res.status(404).json({ success: false, message: resultado.error });
+    }
+    return res.status(200).json({ success: true, data: resultado.getValue().factura });
   }
 }

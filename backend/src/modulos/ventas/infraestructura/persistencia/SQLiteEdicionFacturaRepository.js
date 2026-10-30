@@ -143,7 +143,7 @@ export function asegurarEsquemaEdicion(db) {
         );
         INSERT INTO facturas_migracion_edicion
           (id, venta_id, consecutivo, nombre_cliente, fecha_emision, estado, reemplaza_a)
-        SELECT id, venta_id, consecutivo, nombre_cliente, fecha_emision, estado, ${origenReemplaza}
+        SELECT id, venta_id, consecutivo, COALESCE(nombre_cliente, 'Consumidor Final'), fecha_emision, estado, ${origenReemplaza}
         FROM facturas;
         DROP TABLE facturas;
         ALTER TABLE facturas_migracion_edicion RENAME TO facturas;

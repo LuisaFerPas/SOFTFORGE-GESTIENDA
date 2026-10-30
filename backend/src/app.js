@@ -91,7 +91,7 @@ const impresoraAdapter = new ImpresoraTermicaAdapter();
 const impresoraMockAdapter = new ImpresoraMockAdapter(); // Instancia del Mock para pruebas
 const ventaService = new VentaService(ventaRepository, eventBus, stockVentasService);
 const facturacionService = new FacturacionService(ventaRepository, impresoraMockAdapter);
-const ventaController = new VentaController(ventaService, facturacionService, productoRepository); // Inyección de productoRepository
+const ventaController = new VentaController(ventaService, facturacionService, productoRepository, productoService, db);
 app.use('/api/ventas', crearVentasRoutes(ventaController));
 app.use('/api/ventas/facturas', crearConsultaFacturasRoutes(db));
 app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));

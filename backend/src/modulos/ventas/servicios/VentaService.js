@@ -58,12 +58,23 @@ export class VentaService {
       venta.total = total;
       venta.subtotal = total;
 
-      if (payload.medioPago === 'EFECTIVO' &&
-          (!dineroValido(payload.montoRecibido) || Number(payload.montoRecibido) < total)) {
-        return Result.fail('El monto recibido es insuficiente');
+      if (payload.medioPago === 'EFECTIVO') {
+        const strRecibido = String(payload.montoRecibido ?? '').trim();
+        if (/^0\d+/.test(strRecibido) || (strRecibido.startsWith('0') && strRecibido.length > 1 && !strRecibido.startsWith('0.'))) {
+          return Result.fail('El monto recibido no puede tener un 0 delante.');
+        }
+        if (!dineroValido(payload.montoRecibido) || Number(payload.montoRecibido) < total) {
+          return Result.fail('El monto recibido es insuficiente');
+        }
       }
       if (payload.medioPago === 'MIXTO') {
         const { montoEfectivo, montoNequi } = payload;
+        const strEfec = String(montoEfectivo ?? '').trim();
+        const strNeq  = String(montoNequi ?? '').trim();
+        if (/^0\d+/.test(strEfec) || (strEfec.startsWith('0') && strEfec.length > 1 && !strEfec.startsWith('0.')) ||
+            /^0\d+/.test(strNeq) || (strNeq.startsWith('0') && strNeq.length > 1 && !strNeq.startsWith('0.'))) {
+          return Result.fail('Los montos de pago no pueden tener un 0 delante.');
+        }
         if (!dineroValido(montoEfectivo) || !dineroValido(montoNequi) ||
             Number(montoEfectivo) <= 0 || Number(montoNequi) <= 0 ||
             Math.abs(Number(montoEfectivo) + Number(montoNequi) - total) > 0.01) {
