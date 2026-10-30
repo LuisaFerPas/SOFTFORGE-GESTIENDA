@@ -4,6 +4,7 @@ import { db } from './infraestructura/database/conexion.js';
 import { inicializarEsquema } from './infraestructura/database/esquema.js';
 import { eventBus } from './shared/EventBus.js';
 import { ImpresoraTermicaAdapter } from './infraestructura/impresora/impresoraTermica.js';
+import { ImpresoraMockAdapter } from './modulos/ventas/infraestructura/ImpresoraMockAdapter.js';
 
 // Módulo: Usuarios & Auth
 import { UsuarioRepository } from './modulos/usuarios/dominio/UsuarioRepository.js';
@@ -87,9 +88,10 @@ const salidaVentaRepository = new SQLiteSalidaVentaStockRepository(db);
 const stockVentasService = new StockService(salidaVentaRepository);
 const ventaRepository = new SQLiteVentaRepository(db, stockVentasService);
 const impresoraAdapter = new ImpresoraTermicaAdapter();
+const impresoraMockAdapter = new ImpresoraMockAdapter(); // Instancia del Mock para pruebas
 const ventaService = new VentaService(ventaRepository, eventBus, stockVentasService);
-const facturacionService = new FacturacionService(ventaRepository, impresoraAdapter);
-const ventaController = new VentaController(ventaService, facturacionService);
+const facturacionService = new FacturacionService(ventaRepository, impresoraMockAdapter);
+const ventaController = new VentaController(ventaService, facturacionService, productoRepository); // Inyección de productoRepository
 app.use('/api/ventas', crearVentasRoutes(ventaController));
 app.use('/api/ventas/facturas', crearConsultaFacturasRoutes(db));
 app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));

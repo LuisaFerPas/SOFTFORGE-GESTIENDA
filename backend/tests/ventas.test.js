@@ -1,3 +1,4 @@
+import 'dotenv/config'; 
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
@@ -11,6 +12,9 @@ import { StockService } from '../src/modulos/inventario/aplicacion/StockService.
 import { SQLiteProductoRepository } from '../src/modulos/inventario/infraestructura/persistencia/SQLiteProductoRepository.js';
 import { crearEdicionFacturasRoutes } from '../src/modulos/ventas/presentacion/edicionFacturasRoutes.js';
 import { JWT_SECRET } from '../src/modulos/usuarios/presentacion/authMiddleware.js';
+
+// NUEVO IMPORT: Necesario para tus pruebas de Facturación
+import { FacturacionService } from '../src/modulos/ventas/servicios/FacturacionService.js';
 
 /**
  * SD-118 / HU-0305.3: pruebas de integración con los repositorios reales.
@@ -289,4 +293,48 @@ test('HU-0404.5: VENDEDOR recibe 403 al intentar editar una factura vía PUT /ap
     await new Promise((resolve, reject) => server.close((e) => (e ? reject(e) : resolve())));
     db.close();
   }
+});
+
+// ==========================================================
+// NUEVAS PRUEBAS: Equipo 2 (Juliana) - HU-0402.5
+// ==========================================================
+
+test('HU-0402.5: FacturacionService.construirTicket() incluye todos los campos requeridos', () => {
+  // 1. Instanciamos el servicio con dependencias nulas (ya que solo probamos la función pura)
+  const facturacionService = new FacturacionService(null, null);
+
+  // 2. Simulamos un objeto "venta" con productos mockeados
+  const ventaMock = {
+    id: 101,
+    total: 45000,
+    items: [
+      { descripcion: 'Shampoo Sedal', cantidad: 2, precioUnitario: 15000, subtotal: 30000 },
+      { descripcion: 'Juguete Carros', cantidad: 1, precioUnitario: 15000, subtotal: 15000 }
+    ]
+  };
+
+  // 3. Ejecutamos el método
+  const ticket = facturacionService.construirTicket(ventaMock, 'Maria Perez');
+
+  // 4. Verificamos que el ticket tenga la estructura correcta
+  assert.equal(ticket.cliente, 'Maria Perez');
+  assert.equal(ticket.total, 45000);
+  assert.equal(ticket.items.length, 2);
+  
+  // Verificamos el primer producto del ticket
+  assert.equal(ticket.items[0].nombre, 'Shampoo Sedal');
+  assert.equal(ticket.items[0].cantidad, 2);
+  assert.equal(ticket.items[0].precio, 15000);
+  assert.equal(ticket.items[0].subtotal, 30000);
+
+  // Verificamos que el encabezado y pie estén definidos
+  assert.equal(ticket.encabezado, 'VARIEDADES DON MATI');
+  assert.ok(ticket.pie.includes('Gracias'));
+});
+
+test('HU-0402.1: construirTicket() lanza error si la venta no tiene items', () => {
+  const facturacionService = new FacturacionService(null, null);
+  assert.throws(() => {
+    facturacionService.construirTicket(null, 'Cliente');
+  }, /Datos de venta inválidos/);
 });

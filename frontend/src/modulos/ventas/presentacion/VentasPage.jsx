@@ -6,10 +6,11 @@ import {
   Plus, RotateCcw, Search, ShieldCheck, ShoppingBag, ShoppingCart, X
 } from 'lucide-react';
 import { listarProductosApi } from '../../inventario/servicios/inventarioService';
-import { registrarVenta } from '../servicios/ventasService';
+import { registrarVenta, buscarProductoPorCodigo } from '../servicios/ventasService'; // <-- AGREGADO buscarProductoPorCodigo
 import { PanelCobro } from './componentes/PanelCobro';
 import { CarritoVenta } from './componentes/CarritoVenta';
 import { mapearPrecargaCarrito } from './componentes/precargaCarrito';
+import { InputCodigoBarras } from './componentes/InputCodigoBarras'; // <-- NUEVO COMPONENTE
 import { ConfirmacionVentaDialog } from './ConfirmacionVentaDialog';
 import { PreguntaFacturaDialog } from './PreguntaFacturaDialog';
 import './VentasPage.css';
@@ -128,7 +129,6 @@ export function VentasPage() {
   }, [aviso]);
 
   useEffect(() => {
-    // Al aparecer el diálogo de factura no mover el foco fuera de él.
     if (confirmacion && !preguntarFactura) {
       requestAnimationFrame(() => {
         desplazarA(exitoRef.current);
@@ -187,6 +187,32 @@ export function VentasPage() {
     }
   }
 
+  // HU-0301.4: Lógica de escaneo por pistola
+  async function handleEscanearCodigo(codigo) {
+    try {
+      const respuesta = await buscarProductoPorCodigo(codigo);
+      const producto = respuesta.data;
+
+      if (!producto) {
+        throw new Error('Producto no encontrado');
+      }
+
+      // Verificar stock (HU-0301.4)
+      if (producto.stockActual <= 0) {
+        setAviso(`⚠️ Advertencia: ${producto.nombre} no tiene stock, pero se agregará igual.`);
+      } else {
+        setAviso(`${producto.nombre} agregado al carrito`);
+      }
+
+      // Agregar al carrito
+      agregar(producto);
+
+    } catch (err) {
+      // El error se propaga al InputCodigoBarras para que muestre la alerta roja
+      throw err;
+    }
+  }
+
   function cambiarCantidad(id, valor) {
     const cantidad = Number(valor);
     if (!Number.isSafeInteger(cantidad) || cantidad < 1 || cargando) return;
@@ -234,7 +260,6 @@ export function VentasPage() {
     });
   }
 
-  // SD-114: primero revisar; registrar únicamente tras confirmación explícita.
   function finalizar(evento) {
     evento.preventDefault();
     if (cargando || envioEnCursoRef.current) return;
@@ -251,7 +276,6 @@ export function VentasPage() {
   async function confirmarRegistro() {
     if (envioEnCursoRef.current || cargando || !puedeRegistrar || !dialogoAbierto) return;
 
-    // Evita dobles clics incluso antes de que React actualice el estado.
     envioEnCursoRef.current = true;
     setCargando(true);
     setError('');
@@ -268,7 +292,6 @@ export function VentasPage() {
         } : {})
       };
 
-      // Una sola llamada HTTP al confirmar, nunca al abrir el resumen.
       const respuesta = await registrarVenta(payload);
       if (!respuesta?.data) {
         throw new Error('El servidor no devolvió la confirmación de la venta.');
@@ -282,7 +305,7 @@ export function VentasPage() {
       });
       setDialogoAbierto(false);
       setFacturaGenerada(null);
-      setPreguntarFactura(true); // SD-121: preguntar, NO emitir hasta la confirmación explícita.
+      setPreguntarFactura(true);
       setCarrito([]);
       setBusqueda('');
       setMontoRecibido('');
@@ -293,7 +316,6 @@ export function VentasPage() {
       setPrecargaInfo(null);
       setAviso('Venta registrada correctamente');
     } catch (err) {
-      // Conservar el carrito y los montos para que el cajero pueda corregir.
       setDialogoAbierto(false);
       const mensaje = err.message || 'No se pudo confirmar el registro de la venta.';
       const posibleCorteDeRed = /failed to fetch|network|conexi[oó]n|timeout|tiempo de espera/i.test(mensaje);
@@ -407,13 +429,24 @@ export function VentasPage() {
             </div>
             <span className="pos-small-count">{productos.length} productos</span>
           </div>
+
+          {/* ========================================================= */}
+          {/* HU-0301.3: Integración del escáner de código de barras    */}
+          {/* ========================================================= */}
+          <div style={{ marginBottom: '15px' }}>
+            <InputCodigoBarras 
+              onBuscar={handleEscanearCodigo} 
+              deshabilitado={cargando} 
+            />
+          </div>
+
           <div className="pos-search-wrapper">
             <Search size={21} aria-hidden="true" />
             <input
               ref={buscadorRef}
               type="search"
               aria-label="Buscar producto por nombre, código interno o código de barras"
-              placeholder="Buscar por nombre o código..."
+              placeholder="O busca manualmente por nombre o código..."
               value={busqueda}
               onChange={(e) => { setBusqueda(e.target.value); setMostrarTodos(false); }}
               onKeyDown={buscarConEnter}

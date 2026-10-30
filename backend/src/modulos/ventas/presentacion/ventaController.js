@@ -1,7 +1,8 @@
 export class VentaController {
-  constructor(ventaService, facturacionService) {
+  constructor(ventaService, facturacionService, productoRepository) {
     this.ventaService = ventaService;
     this.facturacionService = facturacionService;
+    this.productoRepository = productoRepository; 
   }
 
   // SD-111/112: POST /api/ventas con el usuario autenticado por verifyToken.
@@ -19,17 +20,10 @@ export class VentaController {
     return res.status(201).json({ success: true, data: datos });
   }
 
-  /**
-   * SD-120 / HU-0401.2 — Emite la factura de una venta existente.
-   * POST /api/ventas/facturas
-   * Body: { ventaId: number, nombreCliente?: string }
-   * La impresión física corresponde a la historia SD-121.
-   */
   async crearFactura(req, res) {
     try {
       const { ventaId, nombreCliente } = req.body ?? {};
 
-      // Se acepta un entero o su representación decimal sin caracteres extra.
       const idValido =
         (typeof ventaId === 'number' && Number.isSafeInteger(ventaId) && ventaId > 0) ||
         (typeof ventaId === 'string' && /^[1-9]\d*$/.test(ventaId) &&
@@ -56,7 +50,6 @@ export class VentaController {
         if (resultado.error === 'La venta ya tiene una factura registrada.') {
           return res.status(409).json({ success: false, message: resultado.error });
         }
-        // No exponer a los clientes los detalles de errores internos de SQLite.
         return res.status(500).json({
           success: false, message: 'No fue posible generar la factura. Intenta nuevamente.'
         });
@@ -119,6 +112,64 @@ export class VentaController {
         success: false,
         message: 'Error interno al consultar la factura para reimpresión.'
       });
+    }
+  }
+
+  /**
+   * HU-0301.1: Buscar un producto por código.
+   * GET /api/ventas/productos/:codigo
+   */
+  async buscarProductoPorCodigo(req, res) {
+    try {
+      const { codigo } = req.params;
+      
+      // Usamos el repositorio de inventario para buscar
+      const producto = await this.productoRepository.buscarPorCodigo(codigo);
+
+      if (!producto) {
+        return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+      }
+
+      // Devolvemos solo los campos necesarios para el frontend
+      return res.status(200).json({ 
+        success: true, 
+        data: {
+          id: producto.id,
+          nombre: producto.nombre,
+          codigoInterno: producto.codigoInterno,
+          codigoBarras: producto.codigoBarras,
+          precioVentaUnitario: producto.precioVentaUnitario,
+          stockActual: producto.stockActual
+        } 
+      });
+    } catch (error) {
+      console.error('Error al buscar producto:', error);
+      return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+  }
+
+  /**
+   * HU-0402.4: Generar factura e imprimir directamente.
+   * POST /api/ventas/facturas/imprimir
+   */
+  async generarEImprimirFactura(req, res) {
+    try {
+      const { ventaId, nombreCliente } = req.body ?? {};
+
+      if (!ventaId) {
+        return res.status(400).json({ success: false, message: 'El ID de la venta es obligatorio.' });
+      }
+
+      const resultado = await this.facturacionService.generarEImprimirFactura(Number(ventaId), nombreCliente);
+
+      if (resultado.isFailure) {
+        return res.status(400).json({ success: false, message: resultado.error });
+      }
+
+      return res.status(201).json({ success: true, data: resultado.getValue() });
+    } catch (error) {
+      console.error('[Facturación] Error al imprimir:', error);
+      return res.status(500).json({ success: false, message: 'Error interno al imprimir la factura.' });
     }
   }
 }

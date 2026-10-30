@@ -99,4 +99,61 @@ export class FacturacionService {
     // SD-121: la impresión física se implementará en una tarea posterior.
     throw new Error('La impresión de facturas aún no está implementada.');
   }
+  // ==========================================================
+
+  /**
+   * HU-0402.1: Construye el objeto del ticket a partir de la venta.
+   * @param {Object} venta - Entidad de la venta con sus items.
+   * @param {string} nombreCliente 
+   */
+  construirTicket(venta, nombreCliente = 'Consumidor Final') {
+    if (!venta || !venta.items) {
+      throw new Error('Datos de venta inválidos para construir el ticket.');
+    }
+
+    const items = venta.items.map(item => ({
+      nombre: item.descripcion || `Producto #${item.productoId}`,
+      cantidad: item.cantidad,
+      precio: item.precioUnitario,
+      subtotal: item.subtotal
+    }));
+
+    return {
+      encabezado: 'VARIEDADES DON MATI',
+      cliente: nombreCliente,
+      items: items,
+      total: venta.total,
+      pie: '¡Gracias por su compra!'
+    };
+  }
+
+  /**
+   * HU-0402.4: Conecta la BD, construye el ticket y llama a la impresora.
+   */
+  async generarEImprimirFactura(ventaId, nombreCliente = 'Consumidor Final') {
+    try {
+      // 1. Persistir la factura en BD (reutilizando el método existente)
+      const resultadoFactura = await this.generarFactura(ventaId, nombreCliente);
+      if (resultadoFactura.isFailure) {
+        return resultadoFactura;
+      }
+      
+      const factura = resultadoFactura.getValue();
+
+      // 2. Obtener la venta para los items
+      const venta = await this.ventaRepository.buscarPorId(ventaId);
+      if (!venta) return Result.fail('No se encontró la venta asociada.');
+
+      // 3. Construir el ticket (HU-0402.1)
+      const ticket = this.construirTicket(venta, nombreCliente);
+
+      // 4. Llamar al puerto de la impresora (HU-0402.2)
+      await this.impresoraAdapter.imprimirFactura(ticket);
+
+      return Result.ok({ factura, impreso: true, mensaje: 'Factura generada e impresa exitosamente.' });
+    } catch (error) {
+      console.error('[Facturación] Error al generar e imprimir:', error);
+      return Result.fail('Error al imprimir la factura.');
+    }
+  }
 }
