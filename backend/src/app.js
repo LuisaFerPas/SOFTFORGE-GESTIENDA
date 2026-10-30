@@ -4,7 +4,7 @@ import { db } from './infraestructura/database/conexion.js';
 import { inicializarEsquema } from './infraestructura/database/esquema.js';
 import { eventBus } from './shared/EventBus.js';
 import { ImpresoraTermicaAdapter } from './infraestructura/impresora/impresoraTermica.js';
-import { ImpresoraMockAdapter } from './modulos/ventas/infraestructura/ImpresoraMockAdapter.js';
+import { ImpresoraMockAdapter } from './modulos/ventas/infraestructura/impresora/impresoraMock.js';
 
 // Módulo: Usuarios & Auth
 import { UsuarioRepository } from './modulos/usuarios/dominio/UsuarioRepository.js';
