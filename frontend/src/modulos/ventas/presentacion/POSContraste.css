@@ -1,0 +1,45 @@
+/* Mejora visual dirigida solo al POS y sus modales. NO afecta otras pantallas. */
+.pos { --pos-ink:#2b1c15; --pos-sub:#684c3c; }
+.pos .pos-progress { border-color:#cfab8d; background:#fff0e3; }
+.pos .pos-progress-step { color:#624736; }
+.pos .pos-progress-step--active { color:#923b00; }
+.pos .pos-card { border-color:#d5ae91; box-shadow:0 9px 25px rgba(57,27,10,.09); }
+.pos .pos-catalog { background:#fffdfb; }
+.pos .pos-cart { background:#fff8f2; border-color:#c99c7d; }
+.pos .pos-checkout-card { background:#fffefd; border-color:#c7a084; }
+.pos .pos-product { border-color:#cca68d; background:#fff; box-shadow:0 2px 8px #44230b0a; }
+.pos .pos-product:hover:not(:disabled) { background:#fff3e9; border-color:#c45408; box-shadow:0 9px 22px #42250e22; }
+.pos .pos-product-code, .pos .pos-search-hint, .pos .pos-method-sub, .pos .pos-secure-note { color:#674d3c; }
+.pos .pos-method { border-color:#cfa689; background:#fff; }
+.pos .pos-method--active { border:2px solid #ce570b; background:#ffebdd; box-shadow:0 0 0 2px #e9671020; }
+.pos .pos-method-name { color:#2a1a12; }
+.pos .pos-method-sub { font-size:11px; }
+.pos .pos-money-field { border-color:#b99479; }
+.pos .pos-money-field input::placeholder { color:#7b5b49; }
+.pos .pos-amount-chip { border-color:#c79b78; color:#7c3508; }
+.pos .pos-confirm-button:disabled { opacity:1; color:#4d3526; background:#ddcfc3; border:1px solid #ac907c; box-shadow:none; }
+.pos .pos-confirm-button:not(:disabled) { color:white; background:#d95700; }
+.pos .pos-checkout-hint--ready { color:#175536; border:1px solid #9dceb0; }
+.pos .pos-help-inline summary { color:#803607; font-size:12px; }
+.pos .pos-total-box { background:#ffead7; border-color:#d8a37c; }
+/* Los modales viven en un portal del <body>, fuera de .pos */
+.pos-modal { background:#fffdf9; border:2px solid #d8b39a; color:#2d1c11; }
+.pos-modal .pos-modal-header { background:#fff9f2; border-bottom:1px solid #dbc2af; }
+.pos-modal .pos-modal-heading h2 { color:#2a1a12; font-weight:850; font-size:22px; }
+.pos-modal .pos-modal-heading p { color:#654a39; font-size:13px; line-height:1.55; }
+.pos-modal .pos-modal-row-title { color:#3d2a1d; font-size:14px; font-weight:750; }
+.pos-modal .pos-modal-row-title span { color:#654937; }
+.pos-modal .pos-modal-item > div span { color:#6b4d3d; font-size:12px; }
+.pos-modal .pos-modal-method small { color:#614937; font-size:12px; }
+.pos-modal .pos-modal-caution { color:#71400e; border:1.5px solid #d4a868; background:#fff0d8; font-size:12px; }
+.pos-modal .pos-modal-verified { color:#145132; border:1px solid #9cc9ac; font-size:12px; }
+.pos-modal .pos-modal-footer { background:#fff8f2; border-top-color:#d9bda7; }
+.pos-modal .pos-modal-cancel { color:#553827; border:1.5px solid #ac8972; background:#fff; }
+.pos-modal .pos-modal-submit { background:#d95500; border-color:#bd4800; color:#fff; }
+.pos-modal .pos-modal-submit:hover:not(:disabled) { background:#b84600; }
+.pos-modal .pos-invoice-hint, .pos-modal .pos-invoice-info { color:#65442f; }
+.pos-modal .pos-invoice-step { color:#653c23; }
+.pos-modal .pos-invoice-label { color:#40271b; }
+.pos-modal .pos-invoice-input { color:#2b1910; border-color:#be9779; }
+.pos-modal .pos-invoice-input::placeholder { color:#715544; }
+@media(prefers-reduced-motion:reduce) { .pos .pos-product { transition:none; } }

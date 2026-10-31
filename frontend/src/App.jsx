@@ -10,6 +10,7 @@ import { DashboardPage } from './modulos/dashboard/presentacion/DashboardPage';
 import { UsuariosPage } from './modulos/usuarios/presentacion/UsuariosPage';
 import { InventarioPage } from './modulos/inventario/presentacion/InventarioPage';
 import { VentasPage } from './modulos/ventas/presentacion/VentasPage';
+import { HistorialFacturasPage } from './modulos/ventas/presentacion/HistorialFacturasPage';
 import { ApartadosPage } from './modulos/apartados/presentacion/ApartadosPage';
 
 export function App() {
@@ -27,6 +28,7 @@ export function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               {/* Rutas accesibles para todos los roles autenticados */}
               <Route path="/ventas" element={<VentasPage />} />
+              <Route path="/ventas/facturas" element={<HistorialFacturasPage />} />
               <Route path="/apartados" element={<ApartadosPage />} />
 
               {/* Rutas exclusivas para el Administrador (HU-0105) */}

@@ -1,0 +1,31 @@
+/* HU-0303.1 — Estilos propios del carrito. Prefijo cv- para no tocar VentasPage.css. */
+
+.cv-quantity--error {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.12);
+}
+
+.cv-quantity--error input {
+  color: #a1281b;
+  font-weight: 800;
+}
+
+.cv-cart-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 7px 0 0;
+  color: #a1281b;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.cv-cart-error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cv-cart-error span {
+  overflow-wrap: anywhere;
+}

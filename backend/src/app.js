@@ -4,6 +4,7 @@ import { db } from './infraestructura/database/conexion.js';
 import { inicializarEsquema } from './infraestructura/database/esquema.js';
 import { eventBus } from './shared/EventBus.js';
 import { ImpresoraTermicaAdapter } from './infraestructura/impresora/impresoraTermica.js';
+import { ImpresoraMockAdapter } from './modulos/ventas/infraestructura/impresora/impresoraMock.js';
 
 // Módulo: Usuarios & Auth
 import { UsuarioRepository } from './modulos/usuarios/dominio/UsuarioRepository.js';
@@ -19,15 +20,18 @@ import { ProductoRepository } from './modulos/inventario/dominio/ProductoReposit
 import { ProductoService } from './modulos/inventario/aplicacion/ProductoService.js';
 import { StockService } from './modulos/inventario/aplicacion/StockService.js';
 import { ProductoController } from './modulos/inventario/presentacion/productoController.js';
-import { StockController } from './modulos/inventario/presentacion/stockController.js'; // <-- NUEVO IMPORT
+import { StockController } from './modulos/inventario/presentacion/stockController.js';
 import { crearInventarioRoutes } from './modulos/inventario/presentacion/inventarioRoutes.js';
 
 // Módulo: Ventas & Facturación
-import { VentaRepository } from './modulos/ventas/dominio/VentaRepository.js';
+import { SQLiteVentaRepository } from './modulos/ventas/infraestructura/persistencia/SQLiteVentaRepository.js';
+import { SQLiteSalidaVentaStockRepository } from './modulos/ventas/infraestructura/persistencia/SQLiteSalidaVentaStockRepository.js';
 import { VentaService } from './modulos/ventas/servicios/VentaService.js';
 import { FacturacionService } from './modulos/ventas/servicios/FacturacionService.js';
 import { VentaController } from './modulos/ventas/presentacion/ventaController.js';
 import { crearVentasRoutes } from './modulos/ventas/presentacion/ventasRoutes.js';
+import { crearConsultaFacturasRoutes } from './modulos/ventas/presentacion/consultaFacturasRoutes.js';
+import { crearEdicionFacturasRoutes } from './modulos/ventas/presentacion/edicionFacturasRoutes.js';
 
 // Módulo: Apartados
 import { ApartadoRepository } from './modulos/apartados/dominio/ApartadoRepository.js';
@@ -44,7 +48,6 @@ import { crearReportesRoutes } from './modulos/reportes/presentacion/reportesRou
 inicializarEsquema();
 
 export const app = express();
-
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -52,7 +55,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// 2. Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
@@ -62,51 +64,49 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 3. Inyección de Dependencias y Enrutamiento Modular (DDD)
-
-// -- Módulo Usuarios & Auth
+// Inyección de Dependencias y Enrutamiento Modular
 const usuarioRepository = new UsuarioRepository(db);
 const authService = new AuthService(usuarioRepository);
 const usuarioService = new UsuarioService(usuarioRepository);
 const authController = new AuthController(authService);
 const usuarioController = new UsuarioController(usuarioService);
-
 app.use('/api/auth', crearAuthRoutes(authController));
 app.use('/api/usuarios', crearUsuarioRoutes(usuarioController));
 
-// -- Módulo Inventario
+// Módulo Inventario
 const productoRepository = new ProductoRepository(db);
 const productoService = new ProductoService(productoRepository);
 const stockService = new StockService(productoRepository);
 const productoController = new ProductoController(productoService, stockService);
-const stockController = new StockController(stockService); // <-- NUEVA INSTANCIA
-
-// MODIFICADO: Ahora le pasamos también el stockController
+const stockController = new StockController(stockService);
 app.use('/api/inventario', crearInventarioRoutes(productoController, stockController));
 
-// -- Módulo Ventas
-const ventaRepository = new VentaRepository(db);
+// Módulo Ventas
+// SD-116: StockService comparte la conexión SQLite con ventas, pero delega
+// cada salida al adaptador sin transacciones anidadas ni doble descuento.
+const salidaVentaRepository = new SQLiteSalidaVentaStockRepository(db);
+const stockVentasService = new StockService(salidaVentaRepository);
+const ventaRepository = new SQLiteVentaRepository(db, stockVentasService);
 const impresoraAdapter = new ImpresoraTermicaAdapter();
-const ventaService = new VentaService(ventaRepository, eventBus);
-const facturacionService = new FacturacionService(ventaRepository, impresoraAdapter);
-const ventaController = new VentaController(ventaService, facturacionService);
-
+const impresoraMockAdapter = new ImpresoraMockAdapter(); // Instancia del Mock para pruebas
+const ventaService = new VentaService(ventaRepository, eventBus, stockVentasService);
+const facturacionService = new FacturacionService(ventaRepository, impresoraMockAdapter);
+const ventaController = new VentaController(ventaService, facturacionService, productoRepository, productoService, db);
 app.use('/api/ventas', crearVentasRoutes(ventaController));
+app.use('/api/ventas/facturas', crearConsultaFacturasRoutes(db));
+app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));
 
-// -- Módulo Apartados
+// Módulo Apartados
 const apartadoRepository = new ApartadoRepository();
 const apartadoService = new ApartadoService(apartadoRepository, eventBus);
 const apartadoController = new ApartadoController(apartadoService);
-
 app.use('/api/apartados', crearApartadosRoutes(apartadoController));
 
-// -- Módulo Reportes
+// Módulo Reportes
 const estadisticasService = new EstadisticasService(db);
 const reporteController = new ReporteController(estadisticasService);
-
 app.use('/api/reportes', crearReportesRoutes(reporteController));
 
-// Manejo de errores global
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Error interno del servidor' });

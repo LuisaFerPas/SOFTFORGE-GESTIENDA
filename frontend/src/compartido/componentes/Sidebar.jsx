@@ -9,7 +9,8 @@ import {
   BarChart2, 
   FileText, 
   LogOut,
-  Repeat
+  Repeat,
+  ReceiptText
 } from 'lucide-react';
 import { useAuth } from '../contexto/AuthContext';
 import { CambioUsuarioModal } from '../../modulos/auth/presentacion/CambioUsuarioModal';
@@ -56,9 +57,14 @@ export function Sidebar() {
             </NavLink>
           )}
 
-          <NavLink to="/ventas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/ventas" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <ShoppingCart size={18} />
             <span>Ventas</span>
+          </NavLink>
+
+          <NavLink to="/ventas/facturas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <ReceiptText size={18} />
+            <span>Facturas</span>
           </NavLink>
 
           {/* Menú Usuarios: Exclusivo de Administrador (HU-0105) */}
