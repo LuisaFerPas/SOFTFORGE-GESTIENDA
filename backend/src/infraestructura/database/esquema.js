@@ -1,6 +1,7 @@
 import { db } from './conexion.js';
 import bcrypt from 'bcryptjs';
 import { seedProductos } from './seedProductos.js';
+import { migrarMedioPagoOtro } from './migrarMedioPagoOtro.js';
 
 export function inicializarEsquema() {
   db.exec(`
@@ -51,9 +52,10 @@ export function inicializarEsquema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       usuario_id INTEGER NOT NULL,
       total REAL NOT NULL,
-      medio_pago TEXT NOT NULL CHECK(medio_pago IN ('EFECTIVO','NEQUI','MIXTO')),
+      medio_pago TEXT NOT NULL CHECK(medio_pago IN ('EFECTIVO','NEQUI','OTRO','MIXTO')),
       monto_efectivo REAL NOT NULL DEFAULT 0,
       monto_nequi REAL NOT NULL DEFAULT 0,
+      monto_otro REAL NOT NULL DEFAULT 0,
       cambio REAL NOT NULL DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (usuario_id) REFERENCES users(id)
@@ -70,9 +72,19 @@ export function inicializarEsquema() {
       FOREIGN KEY (producto_id) REFERENCES products(id) ON DELETE RESTRICT
     );
 
+    CREATE TABLE IF NOT EXISTS facturas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      venta_id INTEGER NOT NULL UNIQUE,
+      consecutivo TEXT NOT NULL UNIQUE,
+      nombre_cliente TEXT NOT NULL DEFAULT 'Consumidor Final',
+      fecha_emision DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      estado TEXT NOT NULL DEFAULT 'EMITIDA' CHECK(estado IN ('EMITIDA','ANULADA')),
+      FOREIGN KEY (venta_id) REFERENCES sales(id)
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_facturas_consecutivo ON facturas(consecutivo);
     CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at);
     CREATE INDEX IF NOT EXISTS idx_sale_items_venta ON sale_items(venta_id);
-
     CREATE INDEX IF NOT EXISTS idx_products_codigo_barras ON products(codigo_barras);
     CREATE INDEX IF NOT EXISTS idx_products_codigo_interno ON products(codigo_interno);
     CREATE INDEX IF NOT EXISTS idx_products_categoria ON products(categoria);
@@ -80,39 +92,35 @@ export function inicializarEsquema() {
     CREATE INDEX IF NOT EXISTS idx_stock_movements_fecha ON stock_movements(created_at);
   `);
 
-  // Asegurar que si la tabla products ya existía sin la columna 'activo', se le agregue
+  // Migración de pago OTRO conservando todas las ventas y sus relaciones.
+  migrarMedioPagoOtro(db);
+
   try {
-    const tableInfo = db.prepare("PRAGMA table_info(products);").all();
-    const hasActivo = tableInfo.some(col => col.name === 'activo');
-    if (!hasActivo) {
-      db.exec("ALTER TABLE products ADD COLUMN activo INTEGER NOT NULL DEFAULT 1;");
+    const columnas = db.prepare('PRAGMA table_info(products)').all();
+    if (!columnas.some(c => c.name === 'activo')) {
+      db.exec('ALTER TABLE products ADD COLUMN activo INTEGER NOT NULL DEFAULT 1');
     }
   } catch (e) {
-    // Ignorar si ya existe
+    // Compatibilidad defensiva con BD locales anteriores.
   }
 
-  // SD-73: opt-in explícito; nunca sembrar datos ficticios en producción.
+  // La tabla facturas ya se asegura mediante CREATE TABLE IF NOT EXISTS.
+
+  // Nunca insertar productos de demostración en producción.
   if (process.env.NODE_ENV !== 'production' && process.env.GESTIENDA_SEED_DEMO === 'true') {
     seedProductos(db);
   }
 
-  // Usuarios Semilla
   const usuariosSemilla = [
     { username: 'admin1', password: 'admin123', role: 'ADMINISTRADOR' },
     { username: 'admin2', password: 'admin123', role: 'ADMINISTRADOR' },
     { username: 'vendedor', password: 'vendedor123', role: 'VENDEDOR' }
   ];
-
-  // INSERT OR IGNORE: solo inserta si el username no existe todavía.
-  // No usar INSERT OR REPLACE porque SQLite lo implementa como DELETE+INSERT,
-  // lo que viola la FK de stock_movements.usuario_id si ya hay movimientos registrados.
   const insertarUsuario = db.prepare(`
-    INSERT OR IGNORE INTO users (username, password_hash, role, status)
+    INSERT OR IGNORE INTO users (username,password_hash,role,status)
     VALUES (?, ?, ?, 'ACTIVO')
   `);
-
   for (const usuario of usuariosSemilla) {
-    const passwordHash = bcrypt.hashSync(usuario.password, bcrypt.genSaltSync(10));
-    insertarUsuario.run(usuario.username, passwordHash, usuario.role);
+    insertarUsuario.run(usuario.username, bcrypt.hashSync(usuario.password, bcrypt.genSaltSync(10)), usuario.role);
   }
 }
