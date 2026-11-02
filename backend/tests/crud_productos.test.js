@@ -1,7 +1,7 @@
 /**
  * Pruebas Unitarias para el Módulo de Inventario - CRUD de Catálogo de Productos
  * Responsable: Santiago
- * 
+ *
  * Historias de Usuario Cubiertas:
  *  - HU-0501: Registrar nuevo producto en el catálogo (Subtareas HU-0501.1 a HU-0501.5)
  *  - HU-0502: Modificar información de producto (Subtareas HU-0502.1 a HU-0502.4)
@@ -206,7 +206,7 @@ test('HU-0502 [HU-0502.2]: Impedir modificar el código interno para mantener tr
   assert.match(modRes.error, /no puede ser modificado/i);
 });
 
-test('HU-0503 [HU-0503.2 / HU-0503.4]: Dar de baja (desactivar lógicamente) un producto', async () => {
+test('HU-0503 [HU-0503.2 / HU-0503.4]: Dar de baja (desactivar lógicamente) un producto con historial', async () => {
   const db = setupTestDb();
   const repo = new SQLiteProductoRepository(db);
   const service = new ProductoService(repo);
@@ -220,8 +220,14 @@ test('HU-0503 [HU-0503.2 / HU-0503.4]: Dar de baja (desactivar lógicamente) un 
 
   const id = reg.getValue().id;
 
+  // Simular historial de movimientos → obliga baja lógica (activo=0) en vez de DELETE físico
+  db.prepare(
+    "INSERT INTO stock_movements (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, motivo) VALUES (?, 'ENTRADA', 10, 0, 10, 'Test')"
+  ).run(id);
+
   const bajaRes = await service.darDeBajaProducto(id);
   assert.strictEqual(bajaRes.isSuccess, true);
+  assert.strictEqual(bajaRes.getValue().tipo, 'BAJA_LOGICA');
 
   // Listar productos no debe incluir el inactivo
   const lista = await service.listarProductos();
@@ -246,6 +252,12 @@ test('HU-0503 [HU-0503.2]: La baja es estrictamente lógica (conserva el registr
   });
 
   const id = reg.getValue().id;
+
+  // Simular historial: con movimientos el servicio hace baja lógica (activo=0) en vez de DELETE físico
+  db.prepare(
+    "INSERT INTO stock_movements (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, motivo) VALUES (?, 'ENTRADA', 5, 0, 5, 'Test')"
+  ).run(id);
+
   await service.darDeBajaProducto(id);
 
   // Verificar directamente en SQLite que el registro SIGUE EXISTIENDO físicamente
@@ -317,5 +329,3 @@ test('HU-0501.4 / HU-0502.3 / HU-0503.3: Controlador HTTP responde con estados y
   assert.strictEqual(resDel.statusCode, 200);
   assert.strictEqual(resDel.jsonData.success, true);
 });
-
-
