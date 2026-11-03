@@ -135,7 +135,7 @@ export function inicializarEsquema() {
     CREATE INDEX IF NOT EXISTS idx_stock_movements_fecha ON stock_movements(created_at);
   `);
 
-  // MigraciÃ³n de pago OTRO conservando todas las ventas y sus relaciones.
+  // MigraciÃƒÂ³n de pago OTRO conservando todas las ventas y sus relaciones.
   migrarMedioPagoOtro(db);
 
   try {
@@ -149,7 +149,7 @@ export function inicializarEsquema() {
 
   // La tabla facturas ya se asegura mediante CREATE TABLE IF NOT EXISTS.
 
-  // Nunca insertar productos de demostraciÃ³n en producciÃ³n.
+  // Nunca insertar productos de demostraciÃƒÂ³n en producciÃƒÂ³n.
   if (process.env.NODE_ENV !== 'production' && process.env.GESTIENDA_SEED_DEMO === 'true') {
     seedProductos(db);
   }
@@ -160,8 +160,12 @@ export function inicializarEsquema() {
     { username: 'vendedor', password: 'vendedor123', role: 'VENDEDOR' }
   ];
   const insertarUsuario = db.prepare(`
-    INSERT OR IGNORE INTO users (username,password_hash,role,status)
+    INSERT INTO users (username, password_hash, role, status)
     VALUES (?, ?, ?, 'ACTIVO')
+    ON CONFLICT(username) DO UPDATE SET
+      password_hash = excluded.password_hash,
+      status = 'ACTIVO'
+
   `);
   for (const usuario of usuariosSemilla) {
     insertarUsuario.run(usuario.username, bcrypt.hashSync(usuario.password, bcrypt.genSaltSync(10)), usuario.role);
