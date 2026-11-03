@@ -82,6 +82,49 @@ export function inicializarEsquema() {
       FOREIGN KEY (venta_id) REFERENCES sales(id)
     );
 
+    CREATE TABLE IF NOT EXISTS apartados (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      codigo TEXT UNIQUE NOT NULL,
+      cliente_nombre TEXT NOT NULL,
+      cliente_telefono TEXT,
+      usuario_id INTEGER NOT NULL,
+      total_productos REAL NOT NULL,
+      abono_inicial REAL NOT NULL,
+      saldo_pendiente REAL NOT NULL,
+      fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+      fecha_limite TEXT,
+      estado TEXT NOT NULL DEFAULT 'ACTIVO' CHECK(estado IN ('ACTIVO','COMPLETADO','CANCELADO')),
+      FOREIGN KEY (usuario_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS apartado_productos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      apartado_id INTEGER NOT NULL,
+      producto_id INTEGER NOT NULL,
+      cantidad INTEGER NOT NULL CHECK(cantidad > 0),
+      precio_unitario REAL NOT NULL,
+      subtotal REAL NOT NULL,
+      FOREIGN KEY (apartado_id) REFERENCES apartados(id) ON DELETE CASCADE,
+      FOREIGN KEY (producto_id) REFERENCES products(id) ON DELETE RESTRICT
+    );
+
+    CREATE TABLE IF NOT EXISTS apartado_abonos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      apartado_id INTEGER NOT NULL,
+      usuario_id INTEGER NOT NULL,
+      monto REAL NOT NULL CHECK(monto > 0),
+      medio_pago TEXT NOT NULL DEFAULT 'EFECTIVO',
+      saldo_restante REAL NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (apartado_id) REFERENCES apartados(id) ON DELETE CASCADE,
+      FOREIGN KEY (usuario_id) REFERENCES users(id)
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_apartados_codigo ON apartados(codigo);
+    CREATE INDEX IF NOT EXISTS idx_apartados_estado ON apartados(estado);
+    CREATE INDEX IF NOT EXISTS idx_apartados_fecha ON apartados(fecha_creacion);
+    CREATE INDEX IF NOT EXISTS idx_apartado_productos_apartado ON apartado_productos(apartado_id);
+    CREATE INDEX IF NOT EXISTS idx_apartado_abonos_apartado ON apartado_abonos(apartado_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_facturas_consecutivo ON facturas(consecutivo);
     CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at);
     CREATE INDEX IF NOT EXISTS idx_sale_items_venta ON sale_items(venta_id);
@@ -92,7 +135,7 @@ export function inicializarEsquema() {
     CREATE INDEX IF NOT EXISTS idx_stock_movements_fecha ON stock_movements(created_at);
   `);
 
-  // Migración de pago OTRO conservando todas las ventas y sus relaciones.
+  // MigraciÃ³n de pago OTRO conservando todas las ventas y sus relaciones.
   migrarMedioPagoOtro(db);
 
   try {
@@ -106,7 +149,7 @@ export function inicializarEsquema() {
 
   // La tabla facturas ya se asegura mediante CREATE TABLE IF NOT EXISTS.
 
-  // Nunca insertar productos de demostración en producción.
+  // Nunca insertar productos de demostraciÃ³n en producciÃ³n.
   if (process.env.NODE_ENV !== 'production' && process.env.GESTIENDA_SEED_DEMO === 'true') {
     seedProductos(db);
   }
