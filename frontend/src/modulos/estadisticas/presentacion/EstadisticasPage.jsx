@@ -10,6 +10,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
+import { ResumenCaja } from './componentes/ResumenCaja';
 
 /**
  * Shell cascarón para la página de Estadísticas y Reportes (HE-08 / HE-09).
@@ -209,20 +210,7 @@ export function EstadisticasPage() {
       {seccionActiva === 'caja' && (
         <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '24px' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px' }}>Resumen de Caja Diaria (HE-08)</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '16px' }}>
-            <div style={{ padding: '12px', backgroundColor: '#F9FAFB', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Total del Día</div>
-              <div style={{ fontWeight: 700, fontSize: '1.2rem', color: '#1F2937' }}>$0</div>
-            </div>
-            <div style={{ padding: '12px', backgroundColor: '#F9FAFB', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Efectivo</div>
-              <div style={{ fontWeight: 700, fontSize: '1.2rem', color: '#059669' }}>$0</div>
-            </div>
-            <div style={{ padding: '12px', backgroundColor: '#F9FAFB', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Nequi</div>
-              <div style={{ fontWeight: 700, fontSize: '1.2rem', color: '#7C3AED' }}>$0</div>
-            </div>
-          </div>
+          <ResumenCaja />
         </div>
       )}
     </div>
