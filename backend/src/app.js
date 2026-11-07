@@ -43,6 +43,7 @@ import { crearApartadosRoutes } from './modulos/apartados/presentacion/apartados
 import { EstadisticasService } from './modulos/reportes/servicios/EstadisticasService.js';
 import { ReporteController } from './modulos/reportes/presentacion/reporteController.js';
 import { crearReportesRoutes } from './modulos/reportes/presentacion/reportesRoutes.js';
+import { crearTotalesCajaRoutes } from './modulos/reportes/presentacion/totalesCajaRoutes.js';
 
 // 1. Inicializar esquema de Base de Datos SQLite
 inicializarEsquema();
@@ -106,6 +107,7 @@ app.use('/api/apartados', crearApartadosRoutes(apartadoController));
 const estadisticasService = new EstadisticasService(db);
 const reporteController = new ReporteController(estadisticasService);
 app.use('/api/reportes', crearReportesRoutes(reporteController));
+app.use('/api/pagos/dia/totales', crearTotalesCajaRoutes(db)); // HU-0802 (Javier)
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

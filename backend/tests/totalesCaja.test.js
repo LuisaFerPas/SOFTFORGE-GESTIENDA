@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { TotalesCajaService } from '../src/modulos/reportes/servicios/TotalesCajaService.js';
 
+// Antes de importar el middleware: clave de firma exclusiva de esta prueba.
+process.env.JWT_SECRET ||= 'clave-de-prueba-hu0802-no-usar-en-produccion';
+const { default: express } = await import('express');
+const { default: jwt } = await import('jsonwebtoken');
+const { crearTotalesCajaRoutes } = await import('../src/modulos/reportes/presentacion/totalesCajaRoutes.js');
+
 function crearDb() {
   const db = new DatabaseSync(':memory:');
   db.exec(`
@@ -45,6 +51,35 @@ function insertarAbono(db, { monto, medioPago = 'EFECTIVO', fecha }) {
       (apartado_id, usuario_id, monto, medio_pago, saldo_restante, created_at)
     VALUES (1, 1, ?, ?, 0, ?)
   `).run(monto, medioPago, fecha);
+}
+
+async function crearServidorHttp(db) {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/pagos/dia/totales', crearTotalesCajaRoutes(db));
+  const server = await new Promise((resolve) => {
+    const servidor = app.listen(0, '127.0.0.1', () => resolve(servidor));
+  });
+  return {
+    url: `http://127.0.0.1:${server.address().port}/api/pagos/dia/totales`,
+    close: () => new Promise((resolve, reject) => {
+      server.close((error) => error ? reject(error) : resolve());
+    })
+  };
+}
+
+function tokenValido() {
+  return jwt.sign(
+    { id: 1, username: 'admin1', role: 'ADMINISTRADOR' },
+    process.env.JWT_SECRET
+  );
+}
+
+async function get(url, token) {
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+  return { status: response.status, body: await response.json() };
 }
 
 test('HU-0802: suma ventas y abonos del día por medio de pago', async () => {
@@ -157,4 +192,63 @@ test('HU-0802: un pago de otro día no se cuenta', async () => {
 
 test('HU-0802: hoyBogota devuelve una fecha YYYY-MM-DD', () => {
   assert.match(TotalesCajaService.hoyBogota(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('HU-0802 HTTP: sin token responde 401', async () => {
+  const db = crearDb();
+  const servidor = await crearServidorHttp(db);
+  try {
+    const respuesta = await get(servidor.url);
+    assert.equal(respuesta.status, 401);
+    assert.equal(respuesta.body.success, false);
+  } finally {
+    await servidor.close();
+    db.close();
+  }
+});
+
+test('HU-0802 HTTP: con token válido devuelve los totales del día', async () => {
+  const db = crearDb();
+  const servidor = await crearServidorHttp(db);
+  try {
+    const hoy = TotalesCajaService.hoyBogota();
+    insertarVenta(db, {
+      total: 20000, medioPago: 'EFECTIVO',
+      efectivo: 50000, cambio: 30000, fecha: `${hoy}T15:00:00.000Z`
+    });
+    insertarAbono(db, {
+      monto: 5000, medioPago: 'NEQUI', fecha: `${hoy}T16:00:00.000Z`
+    });
+
+    const respuesta = await get(servidor.url, tokenValido());
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(respuesta.body.success, true);
+    assert.equal(respuesta.body.data.fecha, hoy);
+    assert.equal(respuesta.body.data.totalEfectivo, 20000);
+    assert.equal(respuesta.body.data.totalNequi, 5000);
+    assert.equal(respuesta.body.data.totalOtro, 0);
+    assert.equal(respuesta.body.data.totalDia, 25000);
+  } finally {
+    await servidor.close();
+    db.close();
+  }
+});
+
+test('HU-0802 HTTP: un día sin pagos devuelve 200 con ceros', async () => {
+  const db = crearDb();
+  const servidor = await crearServidorHttp(db);
+  try {
+    const respuesta = await get(servidor.url, tokenValido());
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(respuesta.body.success, true);
+    assert.equal(respuesta.body.data.totalDia, 0);
+    assert.equal(respuesta.body.data.totalEfectivo, 0);
+    assert.equal(respuesta.body.data.totalNequi, 0);
+    assert.equal(respuesta.body.data.totalOtro, 0);
+  } finally {
+    await servidor.close();
+    db.close();
+  }
 });
