@@ -8,6 +8,7 @@ export function crearApartadosRoutes(apartadoController) {
 
   router.post('/', (req, res) => apartadoController.crear(req, res));
   router.get('/', (req, res) => apartadoController.listar(req, res));
+  router.get('/activos', (req, res) => apartadoController.listar(req, res));
   router.post('/:id/abonos', (req, res) => apartadoController.abonar(req, res));
   router.patch('/:id/cancelar', (req, res) => apartadoController.cancelar(req, res));
 

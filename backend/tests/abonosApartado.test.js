@@ -6,6 +6,14 @@ import { SQLiteApartadoRepository } from '../src/modulos/apartados/infraestructu
 import { AbonoApartadoUseCase } from '../src/modulos/apartados/servicios/AbonoApartadoUseCase.js';
 import { EventBus } from '../src/shared/EventBus.js';
 
+process.env.JWT_SECRET ||= 'clave-de-prueba-hu0702-no-usar-en-produccion';
+
+const { default: express } = await import('express');
+const { default: jwt } = await import('jsonwebtoken');
+const { ApartadoService } = await import('../src/modulos/apartados/servicios/ApartadoService.js');
+const { ApartadoController } = await import('../src/modulos/apartados/presentacion/apartadoController.js');
+const { crearApartadosRoutes } = await import('../src/modulos/apartados/presentacion/apartadosRoutes.js');
+
 function crearEscenario() {
   const db = new DatabaseSync(':memory:');
   db.exec(`
@@ -81,6 +89,53 @@ function contarAbonos(db, apartadoId) {
   return db.prepare(
     'SELECT COUNT(*) AS total FROM apartado_abonos WHERE apartado_id = ?'
   ).get(apartadoId).total;
+}
+
+async function crearServidorHttp(repositorio, eventBus) {
+  const servicio = new ApartadoService(repositorio, eventBus);
+  const controlador = new ApartadoController(servicio);
+  const app = express();
+  app.use(express.json());
+  app.use('/api/apartados', crearApartadosRoutes(controlador));
+
+  const servidor = await new Promise((resolve) => {
+    const instancia = app.listen(0, '127.0.0.1', () => resolve(instancia));
+  });
+
+  return {
+    url: `http://127.0.0.1:${servidor.address().port}/api/apartados`,
+    cerrar: () => new Promise((resolve, reject) => {
+      servidor.close((error) => (error ? reject(error) : resolve()));
+    })
+  };
+}
+
+function tokenValido() {
+  return jwt.sign(
+    { id: 1, username: 'admin1', role: 'ADMINISTRADOR' },
+    process.env.JWT_SECRET
+  );
+}
+
+async function solicitar(url, { method = 'GET', token, body } = {}) {
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const respuesta = await fetch(url, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+
+  return {
+    status: respuesta.status,
+    body: await respuesta.json()
+  };
 }
 
 test('HU-0702: un abono parcial baja el saldo y mantiene el apartado ACTIVO', async () => {
@@ -268,6 +323,172 @@ test('HU-0702: listarActivos devuelve solo apartados ACTIVOS con sus abonos', as
     assert.equal(conAbono.abonosAdicionales[0].monto, 5000);
     assert.equal(conAbono.abonosAdicionales[0].medioPago, 'OTRO');
   } finally {
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: GET /activos exige autenticación', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const respuesta = await solicitar(`${servidor.url}/activos`);
+
+    assert.equal(respuesta.status, 401);
+    assert.equal(respuesta.body.success, false);
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: GET /activos devuelve solo los apartados ACTIVOS', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const activoId = await crearApartado(repositorio, {
+      total: 50000,
+      abonoInicial: 20000,
+      clienteNombre: 'Cliente Activo'
+    });
+    await crearApartado(repositorio, {
+      total: 50000,
+      abonoInicial: 50000,
+      clienteNombre: 'Cliente Completado'
+    });
+
+    const respuesta = await solicitar(`${servidor.url}/activos`, { token: tokenValido() });
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(respuesta.body.success, true);
+    assert.equal(respuesta.body.data.length, 1);
+    assert.equal(respuesta.body.data[0].id, activoId);
+    assert.equal(respuesta.body.data[0].estado, 'ACTIVO');
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: POST /:id/abonos registra un abono parcial', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const id = await crearApartado(repositorio, { total: 50000, abonoInicial: 20000 });
+
+    const respuesta = await solicitar(`${servidor.url}/${id}/abonos`, {
+      method: 'POST',
+      token: tokenValido(),
+      body: { monto: 10000, medioPago: 'NEQUI' }
+    });
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(respuesta.body.success, true);
+    assert.equal(respuesta.body.data.completado, false);
+    assert.equal(respuesta.body.data.apartado.saldoPendiente, 20000);
+    assert.equal(respuesta.body.data.apartado.estado, 'ACTIVO');
+    assert.equal(respuesta.body.data.apartado.abonosAdicionales.length, 1);
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: POST /:id/abonos completa el apartado con el abono final', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const id = await crearApartado(repositorio, { total: 50000, abonoInicial: 20000 });
+
+    const respuesta = await solicitar(`${servidor.url}/${id}/abonos`, {
+      method: 'POST',
+      token: tokenValido(),
+      body: { monto: 30000, medioPago: 'EFECTIVO' }
+    });
+
+    assert.equal(respuesta.status, 200);
+    assert.equal(respuesta.body.data.completado, true);
+    assert.equal(respuesta.body.data.apartado.estado, 'COMPLETADO');
+    assert.equal(respuesta.body.data.apartado.saldoPendiente, 0);
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: POST /:id/abonos rechaza un monto mayor al saldo con 400', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const id = await crearApartado(repositorio, { total: 50000, abonoInicial: 20000 });
+
+    const respuesta = await solicitar(`${servidor.url}/${id}/abonos`, {
+      method: 'POST',
+      token: tokenValido(),
+      body: { monto: 30001 }
+    });
+
+    assert.equal(respuesta.status, 400);
+    assert.equal(respuesta.body.success, false);
+    assert.match(respuesta.body.message, /saldo pendiente/i);
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: POST /:id/abonos responde 404 si el apartado no existe', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const respuesta = await solicitar(`${servidor.url}/9999/abonos`, {
+      method: 'POST',
+      token: tokenValido(),
+      body: { monto: 1000 }
+    });
+
+    assert.equal(respuesta.status, 404);
+    assert.equal(respuesta.body.success, false);
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: POST /:id/abonos responde 409 si el apartado no está ACTIVO', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const id = await crearApartado(repositorio, { total: 50000, abonoInicial: 50000 });
+
+    const respuesta = await solicitar(`${servidor.url}/${id}/abonos`, {
+      method: 'POST',
+      token: tokenValido(),
+      body: { monto: 1000 }
+    });
+
+    assert.equal(respuesta.status, 409);
+    assert.equal(respuesta.body.success, false);
+  } finally {
+    await servidor.cerrar();
+    db.close();
+  }
+});
+
+test('HU-0702 HTTP: POST /:id/abonos exige autenticación', async () => {
+  const { db, repositorio, eventBus } = crearEscenario();
+  const servidor = await crearServidorHttp(repositorio, eventBus);
+  try {
+    const id = await crearApartado(repositorio, { total: 50000, abonoInicial: 20000 });
+
+    const respuesta = await solicitar(`${servidor.url}/${id}/abonos`, {
+      method: 'POST',
+      body: { monto: 1000 }
+    });
+
+    assert.equal(respuesta.status, 401);
+    assert.equal(respuesta.body.success, false);
+  } finally {
+    await servidor.cerrar();
     db.close();
   }
 });

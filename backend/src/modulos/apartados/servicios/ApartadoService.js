@@ -1,3 +1,5 @@
+import { AbonoApartadoUseCase } from './AbonoApartadoUseCase.js';
+
 /**
  * Servicio de Gestión de Apartados (HE-07)
  */
@@ -12,7 +14,8 @@ export class ApartadoService {
   }
 
   async registrarAbono(apartadoId, monto, medioPago, usuarioId) {
-    // TODO: Registrar abono parcial y verificar si completa el pago total (HU-0702)
+    const casoUso = new AbonoApartadoUseCase(this.apartadoRepository, this.eventBus);
+    return casoUso.registrar(apartadoId, { monto, medioPago }, usuarioId);
   }
 
   async cancelarApartado(apartadoId, usuarioId) {
@@ -20,6 +23,7 @@ export class ApartadoService {
   }
 
   async listarApartadosActivos() {
-    // TODO: Consultar listado de apartados activos
+    const casoUso = new AbonoApartadoUseCase(this.apartadoRepository, this.eventBus);
+    return casoUso.listarActivos();
   }
 }
