@@ -10,6 +10,7 @@ import {
   Phone,
   AlertCircle
 } from 'lucide-react';
+import { ListaApartadosActivos } from './ListaApartadosActivos';
 
 /**
  * Shell cascarón para la página de Apartados (HE-07).
@@ -119,91 +120,7 @@ export function ApartadosPage() {
             </div>
           </div>
 
-          {/* Tarjeta Placeholder de Apartados Activos */}
-          <div style={{
-            backgroundColor: '#FFFDF7',
-            border: '1px solid #E5E7EB',
-            borderRadius: '12px',
-            padding: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '16px',
-              paddingBottom: '12px',
-              borderBottom: '1px solid #F3F4F6'
-            }}>
-              <div>
-                <span style={{
-                  backgroundColor: '#FEF3C7',
-                  color: '#92400E',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  marginRight: '8px'
-                }}>
-                  ACTIVO
-                </span>
-                <span style={{ fontWeight: 700, color: '#1F2937' }}>AP-0001 (Ejemplo)</span>
-              </div>
-              <span style={{ fontSize: '0.85rem', color: '#6B7280' }}>Fecha: Hoy</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Cliente</div>
-                <div style={{ fontWeight: 600, color: '#1F2937' }}>Consumidor Ejemplo</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Total Apartado</div>
-                <div style={{ fontWeight: 600, color: '#1F2937' }}>$50.000</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Abonos Realizados</div>
-                <div style={{ fontWeight: 600, color: '#059669' }}>$20.000</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>Saldo Pendiente</div>
-                <div style={{ fontWeight: 700, color: '#DC2626', fontSize: '1.05rem' }}>$30.000</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '12px', borderTop: '1px solid #F3F4F6' }}>
-              <button 
-                style={{
-                  padding: '8px 14px',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  borderRadius: '6px',
-                  border: '1px solid #EF4444',
-                  backgroundColor: '#FFFFFF',
-                  color: '#EF4444',
-                  cursor: 'pointer'
-                }}
-                onClick={() => alert('Stub de cancelación: Santiago completará HU-0703')}
-              >
-                Cancelar apartado
-              </button>
-              <button 
-                style={{
-                  padding: '8px 14px',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: '#FF6600',
-                  color: '#FFFFFF',
-                  cursor: 'pointer'
-                }}
-                onClick={() => alert('Stub de abono: Javier completará HU-0702')}
-              >
-                Registrar abono
-              </button>
-            </div>
-          </div>
+          <ListaApartadosActivos filtro={filtroBusqueda} />
         </div>
       )}
 
