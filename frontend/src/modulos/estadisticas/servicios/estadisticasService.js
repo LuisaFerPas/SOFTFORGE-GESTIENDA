@@ -33,7 +33,8 @@ export async function consultarResumenFinanciero(periodo = 'MES') {
 
 /**
  * Consulta el listado de todos los pagos registrados durante el día actual.
- * HU-0801 (Santiago)
+ * HU-0801
+ * @returns {Promise<{ success: boolean, data: Array<{ id: number, hora: string, fechaHora: string, monto: number, medioPago: string, tipo: string, referenciaId: number }> }>}
  */
 export async function consultarPagosDelDia() {
   return apiFetch('/pagos/dia');
