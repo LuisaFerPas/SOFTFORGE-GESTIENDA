@@ -11,7 +11,8 @@ import {
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { ResumenCaja } from './componentes/ResumenCaja';
 import { ListadoPagosDia } from './componentes/ListadoPagosDia';
-import { consultarDesempenioProductos } from '../servicios/estadisticasService';
+import { consultarDesempenioProductos, consultarVentasPorPeriodo } from '../servicios/estadisticasService';
+import { formatCOP } from '../../inventario/utilidades/formatoMoneda.js';
 
 export function EstadisticasPage() {
   const { isAdmin } = useAuth();
@@ -22,6 +23,31 @@ export function EstadisticasPage() {
   const [datosProductos, setDatosProductos] = useState(null);
   const [cargandoProductos, setCargandoProductos] = useState(false);
   const [errorProductos, setErrorProductos] = useState('');
+
+  // Estados para HU-0901.4: Ventas por período
+  const [datosVentas, setDatosVentas] = useState(null);
+  const [cargandoVentas, setCargandoVentas] = useState(false);
+  const [errorVentas, setErrorVentas] = useState('');
+
+  // Cargar métricas de ventas cuando se activa la pestaña de ventas o cambia el período (HU-0901.4)
+  useEffect(() => {
+    if (seccionActiva === 'ventas') {
+      cargarVentasPeriodo(periodoSeleccionado);
+    }
+  }, [seccionActiva, periodoSeleccionado]);
+
+  const cargarVentasPeriodo = async (periodo) => {
+    setCargandoVentas(true);
+    setErrorVentas('');
+    try {
+      const respuesta = await consultarVentasPorPeriodo(periodo);
+      setDatosVentas(respuesta?.data || null);
+    } catch (err) {
+      setErrorVentas(err?.message || 'Error al cargar las métricas de ventas.');
+    } finally {
+      setCargandoVentas(false);
+    }
+  };
 
   // Cargar datos cuando se abre la pestaña de productos
   useEffect(() => {
@@ -111,16 +137,48 @@ export function EstadisticasPage() {
         })}
       </div>
 
+      {/* HU-0901.4: Sección de Ventas por período */}
       {seccionActiva === 'ventas' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '18px' }}>
-            <div style={{ fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>Total Ventas ({periodoSeleccionado})</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1F2937' }}>$0</div>
-          </div>
-          <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '18px' }}>
-            <div style={{ fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>Transacciones</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1F2937' }}>0</div>
-          </div>
+        <div>
+          {cargandoVentas ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>
+              <LoaderCircle size={32} className="pos-spin" style={{ margin: '0 auto 12px auto' }} />
+              <p>Cargando métricas de ventas...</p>
+            </div>
+          ) : errorVentas ? (
+            <div style={{ padding: '20px', backgroundColor: '#FEF2F2', color: '#DC2626', borderRadius: '8px' }}>
+              {errorVentas}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#6B7280', marginBottom: '6px' }}>
+                  Total Ventas ({periodos.find(p => p.id === periodoSeleccionado)?.label || periodoSeleccionado})
+                </div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#059669' }}>
+                  {formatCOP.format(datosVentas?.totalVentas ?? 0)}
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#6B7280', marginBottom: '6px' }}>
+                  Transacciones Realizadas
+                </div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1F2937' }}>
+                  {datosVentas?.numeroTransacciones ?? 0}
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#6B7280', marginBottom: '6px' }}>
+                  Ticket Promedio
+                </div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#FF6600' }}>
+                  {formatCOP.format(datosVentas?.ticketPromedio ?? 0)}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
