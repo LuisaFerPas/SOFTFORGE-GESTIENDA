@@ -7,8 +7,9 @@ import { apiFetch } from '../../../compartido/servicios/apiCliente.js';
 
 /**
  * Consulta el reporte de ventas agrupado por período (Día, Semana, Mes o Año).
- * HU-0901 (Santiago)
+ * HU-0901
  * @param {'DIA'|'SEMANA'|'MES'|'AÑO'} periodo
+ * @returns {Promise<{ success: boolean, data: { periodo: string, totalVentas: number, numeroTransacciones: number, ticketPromedio: number, fechaInicio: string } }>}
  */
 export async function consultarVentasPorPeriodo(periodo = 'MES') {
   return apiFetch(`/estadisticas/ventas?periodo=${encodeURIComponent(periodo)}`);
