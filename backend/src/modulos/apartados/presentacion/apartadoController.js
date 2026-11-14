@@ -44,8 +44,28 @@ export class ApartadoController {
     });
   }
 
+  /**
+   * HU-0703.2: Cancela un apartado activo y devuelve productos al inventario.
+   * PATCH /api/apartados/:id/cancelar
+   */
   async cancelar(req, res) {
-    return res.status(501).json({ success: false, message: 'Funcionalidad pendiente (HU-0703).' });
+    try {
+      const resultado = await this.apartadoService.cancelarApartado(req.params.id);
+
+      if (resultado.isFailure) {
+        const { status = 400, message = 'No se pudo cancelar el apartado.' } = resultado.error ?? {};
+        return res.status(status).json({ success: false, message });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: resultado.getValue().message,
+        data: resultado.getValue().data
+      });
+    } catch (error) {
+      console.error('Error en ApartadoController.cancelar:', error);
+      return res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    }
   }
 
   async listar(req, res) {

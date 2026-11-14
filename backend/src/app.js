@@ -34,7 +34,7 @@ import { crearConsultaFacturasRoutes } from './modulos/ventas/presentacion/consu
 import { crearEdicionFacturasRoutes } from './modulos/ventas/presentacion/edicionFacturasRoutes.js';
 
 // Módulo: Apartados
-import { ApartadoRepository } from './modulos/apartados/dominio/ApartadoRepository.js';
+import { SQLiteApartadoRepository } from './modulos/apartados/infraestructura/persistencia/SQLiteApartadoRepository.js';
 import { ApartadoService } from './modulos/apartados/servicios/ApartadoService.js';
 import { ApartadoController } from './modulos/apartados/presentacion/apartadoController.js';
 import { crearApartadosRoutes } from './modulos/apartados/presentacion/apartadosRoutes.js';
@@ -98,7 +98,7 @@ app.use('/api/ventas/facturas', crearConsultaFacturasRoutes(db));
 app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));
 
 // Módulo Apartados
-const apartadoRepository = new ApartadoRepository();
+const apartadoRepository = new SQLiteApartadoRepository(db);
 const apartadoService = new ApartadoService(apartadoRepository, eventBus, productoRepository);
 const apartadoController = new ApartadoController(apartadoService);
 app.use('/api/apartados', crearApartadosRoutes(apartadoController));

@@ -272,4 +272,71 @@ export class SQLiteApartadoRepository extends IApartadoRepository {
       WHERE id = ?
     `).run(nuevoEstado, Number(id));
   }
+
+  /**
+   * HU-0703.2: Cancela un apartado activo y devuelve el stock de cada producto
+   * al inventario en una única transacción atómica.
+   * @param {number} id - ID del apartado a cancelar.
+   * @returns {{ cancelado: boolean, productosDevueltos: number[] }}
+   */
+  cancelarConDevolucionStock(id) {
+    const db = this.db;
+    const idNum = Number(id);
+
+    // 1. Verificar que el apartado existe y está ACTIVO
+    const fila = db.prepare('SELECT id, estado FROM apartados WHERE id = ?').get(idNum);
+    if (!fila) {
+      const err = new Error('Apartado no encontrado.');
+      err.status = 404;
+      throw err;
+    }
+    if (fila.estado !== 'ACTIVO') {
+      const err = new Error(`Solo se puede cancelar un apartado ACTIVO. Estado actual: ${fila.estado}.`);
+      err.status = 409;
+      throw err;
+    }
+
+    // 2. Leer los productos reservados
+    const productos = db.prepare(`
+      SELECT producto_id, cantidad
+      FROM apartado_productos
+      WHERE apartado_id = ?
+    `).all(idNum);
+
+    // 3. Transacción atómica: cambiar estado + devolver stock
+    db.exec('BEGIN TRANSACTION');
+    try {
+      // Cancelar el apartado
+      db.prepare(`
+        UPDATE apartados SET estado = 'CANCELADO' WHERE id = ?
+      `).run(idNum);
+
+      // Devolver stock y registrar movimiento en inventario
+      const stmtStockActual = db.prepare('SELECT stock_actual FROM products WHERE id = ?');
+      const stmtStock = db.prepare(
+        'UPDATE products SET stock_actual = stock_actual + ? WHERE id = ?'
+      );
+      const stmtMovimiento = db.prepare(`
+        INSERT INTO stock_movements
+          (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, motivo, created_at)
+        VALUES (?, 'ENTRADA', ?, ?, ?, 'Devolucion por cancelacion de apartado', ?)
+      `);
+
+      const ahora = new Date().toISOString();
+      for (const prod of productos) {
+        const pId = Number(prod.producto_id);
+        const cant = Number(prod.cantidad);
+        const filaStock = stmtStockActual.get(pId);
+        const stockAnterior = filaStock ? Number(filaStock.stock_actual) : 0;
+        stmtStock.run(cant, pId);
+        stmtMovimiento.run(pId, cant, stockAnterior, stockAnterior + cant, ahora);
+      }
+
+      db.exec('COMMIT');
+      return { cancelado: true, productosDevueltos: productos.map(p => p.producto_id) };
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  }
 }

@@ -79,8 +79,30 @@ export class ApartadoService {
     return casoUso.registrar(apartadoId, { monto, medioPago }, usuarioId);
   }
 
-  async cancelarApartado(apartadoId, usuarioId) {
-    return Result.fail('Funcionalidad pendiente de implementación (HU-0703).');
+  /**
+   * HU-0703.2: Cancela un apartado activo y devuelve los productos al inventario.
+   * @param {number|string} apartadoId
+   * @returns {Promise<Result>}
+   */
+  async cancelarApartado(apartadoId) {
+    try {
+      const id = Number(apartadoId);
+      if (!Number.isInteger(id) || id <= 0) {
+        return Result.fail({ status: 400, message: 'El ID del apartado debe ser un número entero positivo.' });
+      }
+
+      // Delega la transacción atómica al repositorio SQLite
+      const resultado = this.apartadoRepository.cancelarConDevolucionStock(id);
+      return Result.ok({
+        message: 'Apartado cancelado exitosamente. Los productos han sido devueltos al inventario.',
+        data: resultado
+      });
+    } catch (error) {
+      const status = error.status || 500;
+      const message = error.message || 'Error interno al cancelar el apartado.';
+      console.error('Error en ApartadoService.cancelarApartado:', error);
+      return Result.fail({ status, message });
+    }
   }
 
   async listarApartadosActivos() {
