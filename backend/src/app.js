@@ -108,6 +108,7 @@ app.use('/api/apartados', crearApartadosRoutes(apartadoController));
 const estadisticasService = new EstadisticasService(db);
 const reporteController = new ReporteController(estadisticasService);
 app.use('/api/reportes', crearReportesRoutes(reporteController));
+app.use('/api/estadisticas', crearReportesRoutes(reporteController)); // Alias HE-09
 app.use('/api/pagos/dia/totales', crearTotalesCajaRoutes(db)); // HU-0802 (Javier)
 app.use('/api/pagos', crearPagosRoutes(db)); // HU-0801
 

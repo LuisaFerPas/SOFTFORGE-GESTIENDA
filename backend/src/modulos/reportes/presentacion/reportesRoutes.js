@@ -11,6 +11,9 @@ export function crearReportesRoutes(reporteController) {
   router.get('/ganancias', (req, res) => reporteController.verGanancias(req, res));
   router.get('/categorias', (req, res) => reporteController.verPorCategoria(req, res));
   
+  // HU-0901.1: Reportes de ventas por período (Día, Semana, Mes, Año)
+  router.get('/ventas', (req, res) => reporteController.verVentasPorPeriodo(req, res));
+
   // HU-0902.1: Nueva ruta para desempeño de productos
   router.get('/productos', (req, res) => reporteController.verDesempenioProductos(req, res));
 

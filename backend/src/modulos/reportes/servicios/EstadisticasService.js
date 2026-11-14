@@ -6,6 +6,71 @@ export class EstadisticasService {
     this.db = db;
   }
 
+  /**
+   * HU-0901.2: Consulta total de ventas, número de transacciones y ticket promedio por período.
+   * @param {'DIA'|'SEMANA'|'MES'|'AÑO'} periodo
+   * @returns {Promise<{
+   *   periodo: string,
+   *   totalVentas: number,
+   *   numeroTransacciones: number,
+   *   ticketPromedio: number,
+   *   fechaInicio: string
+   * }>}
+   */
+  async consultarVentasPorPeriodo(periodo = 'MES') {
+    try {
+      const periodoNorm = String(periodo || 'MES').toUpperCase().trim();
+
+      // Calcular fecha inicial en base a UTC-5 (Colombia)
+      let rowFecha;
+      switch (periodoNorm) {
+        case 'DIA':
+          rowFecha = this.db.prepare("SELECT date('now', '-5 hours') AS fecha").get();
+          break;
+        case 'SEMANA':
+          // Últimos 7 días
+          rowFecha = this.db.prepare("SELECT date('now', '-5 hours', '-6 days') AS fecha").get();
+          break;
+        case 'AÑO':
+          rowFecha = this.db.prepare("SELECT date('now', '-5 hours', 'start of year') AS fecha").get();
+          break;
+        case 'MES':
+        default:
+          rowFecha = this.db.prepare("SELECT date('now', '-5 hours', 'start of month') AS fecha").get();
+          break;
+      }
+
+      const fechaInicio = rowFecha?.fecha || '';
+
+      const query = `
+        SELECT 
+          COUNT(*) AS numeroTransacciones,
+          COALESCE(SUM(total), 0) AS totalVentas
+        FROM sales
+        WHERE date(created_at, '-5 hours') >= ?
+      `;
+
+      const fila = this.db.prepare(query).get(fechaInicio);
+
+      const totalVentas = Math.round(((Number(fila?.totalVentas) || 0) + Number.EPSILON) * 100) / 100;
+      const numeroTransacciones = Number(fila?.numeroTransacciones) || 0;
+      const ticketPromedio = numeroTransacciones > 0
+        ? Math.round(((totalVentas / numeroTransacciones) + Number.EPSILON) * 100) / 100
+        : 0;
+
+      return {
+        periodo: periodoNorm,
+        fechaInicio,
+        totalVentas,
+        numeroTransacciones,
+        ticketPromedio
+      };
+    } catch (error) {
+      console.error('Error en consultarVentasPorPeriodo:', error);
+      throw new Error('No se pudo obtener el reporte de ventas por período.');
+    }
+  }
+
   async obtenerResumenVentasPeriodo(periodo) { /* TODO */ }
   async obtenerGananciaPorProducto() { /* TODO: (P.Venta - P.Compra) * Cantidad */ }
   async obtenerVentasPorCategoria() { /* TODO */ }
