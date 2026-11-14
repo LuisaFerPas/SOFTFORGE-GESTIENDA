@@ -99,7 +99,7 @@ app.use('/api/ventas/facturas', crearEdicionFacturasRoutes(db));
 
 // Módulo Apartados
 const apartadoRepository = new ApartadoRepository();
-const apartadoService = new ApartadoService(apartadoRepository, eventBus);
+const apartadoService = new ApartadoService(apartadoRepository, eventBus, productoRepository);
 const apartadoController = new ApartadoController(apartadoService);
 app.use('/api/apartados', crearApartadosRoutes(apartadoController));
 
