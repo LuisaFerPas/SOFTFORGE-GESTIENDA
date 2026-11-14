@@ -1,28 +1,24 @@
 import React, { useState } from 'react';
 import { 
-  FileText, 
   PlusCircle, 
   Clock, 
-  Search, 
-  DollarSign, 
-  Package, 
-  User, 
-  Phone,
-  AlertCircle
+  Search
 } from 'lucide-react';
 import { ListaApartadosActivos } from './ListaApartadosActivos';
+import { CrearApartadoModal } from './CrearApartadoModal'; // <-- NUEVO IMPORT
 
-/**
- * Shell cascarón para la página de Apartados (HE-07).
- * HU-0700.5 — Don Mati Paleta: Naranja (#FF6600) y Crema (#FFFDF7).
- */
 export function ApartadosPage() {
-  const [tabActiva, setTabActiva] = useState('activos'); // 'activos' | 'nuevo'
+  const [tabActiva, setTabActiva] = useState('activos');
   const [filtroBusqueda, setFiltroBusqueda] = useState('');
+  const [refresh, setRefresh] = useState(0); // Para recargar la lista
+
+  const handleApartadoCreado = () => {
+    setRefresh(prev => prev + 1);
+    setTabActiva('activos'); // HU-0701.5: Redirigir a pestaña Activos
+  };
 
   return (
     <div className="apartados-container" style={{ padding: '8px 0' }}>
-      {/* Encabezado Don Mati */}
       <div className="panel-header" style={{ marginBottom: '20px' }}>
         <div>
           <h1 className="header-title" style={{ fontSize: '1.6rem', color: '#1F2937' }}>
@@ -34,29 +30,14 @@ export function ApartadosPage() {
         </div>
       </div>
 
-      {/* Selector de Pestañas */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        borderBottom: '2px solid #E5E7EB',
-        marginBottom: '20px'
-      }}>
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #E5E7EB', marginBottom: '20px' }}>
         <button
           onClick={() => setTabActiva('activos')}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            border: 'none',
-            borderBottom: tabActiva === 'activos' ? '3px solid #FF6600' : '3px solid transparent',
-            backgroundColor: tabActiva === 'activos' ? '#FFFDF7' : 'transparent',
-            color: tabActiva === 'activos' ? '#FF6600' : '#4B5563',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            borderRadius: '6px 6px 0 0'
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.95rem', fontWeight: 600,
+            border: 'none', borderBottom: tabActiva === 'activos' ? '3px solid #FF6600' : '3px solid transparent',
+            backgroundColor: tabActiva === 'activos' ? '#FFFDF7' : 'transparent', color: tabActiva === 'activos' ? '#FF6600' : '#4B5563',
+            cursor: 'pointer', transition: 'all 0.2s ease', borderRadius: '6px 6px 0 0'
           }}
         >
           <Clock size={18} />
@@ -66,19 +47,10 @@ export function ApartadosPage() {
         <button
           onClick={() => setTabActiva('nuevo')}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            border: 'none',
-            borderBottom: tabActiva === 'nuevo' ? '3px solid #FF6600' : '3px solid transparent',
-            backgroundColor: tabActiva === 'nuevo' ? '#FFFDF7' : 'transparent',
-            color: tabActiva === 'nuevo' ? '#FF6600' : '#4B5563',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            borderRadius: '6px 6px 0 0'
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.95rem', fontWeight: 600,
+            border: 'none', borderBottom: tabActiva === 'nuevo' ? '3px solid #FF6600' : '3px solid transparent',
+            backgroundColor: tabActiva === 'nuevo' ? '#FFFDF7' : 'transparent', color: tabActiva === 'nuevo' ? '#FF6600' : '#4B5563',
+            cursor: 'pointer', transition: 'all 0.2s ease', borderRadius: '6px 6px 0 0'
           }}
         >
           <PlusCircle size={18} />
@@ -86,156 +58,29 @@ export function ApartadosPage() {
         </button>
       </div>
 
-      {/* PESTAÑA 1: Apartados Activos */}
       {tabActiva === 'activos' && (
         <div>
-          {/* Barra de Búsqueda y Filtro */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '16px'
-          }}>
-            <div style={{
-              position: 'relative',
-              flex: 1,
-              maxWidth: '420px'
-            }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ position: 'relative', flex: 1, maxWidth: '420px' }}>
               <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: '#9CA3AF' }} />
               <input
                 type="text"
                 placeholder="Buscar por cliente o código AP-XXXX..."
                 value={filtroBusqueda}
                 onChange={(e) => setFiltroBusqueda(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px 9px 38px',
-                  borderRadius: '8px',
-                  border: '1px solid #D1D5DB',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  backgroundColor: '#FFFDF7'
-                }}
+                style={{ width: '100%', padding: '9px 12px 9px 38px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', backgroundColor: '#FFFDF7' }}
               />
             </div>
           </div>
 
-          <ListaApartadosActivos filtro={filtroBusqueda} />
+          {/* Le pasamos la key para forzar el re-render al crear un apartado */}
+          <ListaApartadosActivos key={refresh} filtro={filtroBusqueda} />
         </div>
       )}
 
-      {/* PESTAÑA 2: Nuevo Apartado (Stub preparado para Juliana HU-0701) */}
+      {/* HU-0701.4: Integramos el nuevo componente */}
       {tabActiva === 'nuevo' && (
-        <div style={{
-          backgroundColor: '#FFFDF7',
-          border: '1px solid #E5E7EB',
-          borderRadius: '12px',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          maxWidth: '720px'
-        }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1F2937', marginBottom: '16px' }}>
-            Registrar Nuevo Apartado
-          </h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Nombre del Cliente *
-              </label>
-              <div style={{ position: 'relative' }}>
-                <User size={16} style={{ position: 'absolute', left: '10px', top: '10px', color: '#9CA3AF' }} />
-                <input
-                  type="text"
-                  placeholder="Ej: Laura Martínez"
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px 8px 34px',
-                    borderRadius: '6px',
-                    border: '1px solid #D1D5DB',
-                    fontSize: '0.9rem',
-                    outline: 'none'
-                  }}
-                  readOnly
-                  value="Consumidor Final"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Teléfono de Contacto
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Phone size={16} style={{ position: 'absolute', left: '10px', top: '10px', color: '#9CA3AF' }} />
-                <input
-                  type="text"
-                  placeholder="Ej: 3101234567"
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px 8px 34px',
-                    borderRadius: '6px',
-                    border: '1px solid #D1D5DB',
-                    fontSize: '0.9rem',
-                    outline: 'none'
-                  }}
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
-
-          <div style={{
-            border: '1px dashed #D1D5DB',
-            borderRadius: '8px',
-            padding: '20px',
-            textAlign: 'center',
-            backgroundColor: '#FAF5FF',
-            marginBottom: '16px'
-          }}>
-            <Package size={32} style={{ color: '#9333EA', margin: '0 auto 8px auto' }} />
-            <p style={{ fontSize: '0.9rem', color: '#4B5563', margin: 0 }}>
-              Aquí se integrará el selector de productos con lector de barras y buscador por nombre (HU-0701).
-            </p>
-          </div>
-
-          <div style={{
-            backgroundColor: '#F9FAFB',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '20px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: '#4B5563' }}>
-              <span>Total estimado:</span>
-              <span style={{ fontWeight: 600, color: '#1F2937' }}>$0</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: '#4B5563' }}>
-              <span>Abono inicial requerido:</span>
-              <span style={{ fontWeight: 600, color: '#059669' }}>$0</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 700, color: '#1F2937', borderTop: '1px solid #E5E7EB', paddingTop: '8px' }}>
-              <span>Saldo a financiar:</span>
-              <span style={{ color: '#FF6600' }}>$0</span>
-            </div>
-          </div>
-
-          <button
-            style={{
-              width: '100%',
-              padding: '11px',
-              backgroundColor: '#FF6600',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              cursor: 'pointer'
-            }}
-            onClick={() => alert('Creación de apartado: Juliana conectará HU-0701')}
-          >
-            Guardar Apartado
-          </button>
-        </div>
+        <CrearApartadoModal onCreado={handleApartadoCreado} />
       )}
     </div>
   );
