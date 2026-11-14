@@ -44,6 +44,7 @@ import { EstadisticasService } from './modulos/reportes/servicios/EstadisticasSe
 import { ReporteController } from './modulos/reportes/presentacion/reporteController.js';
 import { crearReportesRoutes } from './modulos/reportes/presentacion/reportesRoutes.js';
 import { crearTotalesCajaRoutes } from './modulos/reportes/presentacion/totalesCajaRoutes.js';
+import { crearPagosRoutes } from './modulos/reportes/presentacion/pagosRoutes.js';
 
 // 1. Inicializar esquema de Base de Datos SQLite
 inicializarEsquema();
@@ -108,6 +109,7 @@ const estadisticasService = new EstadisticasService(db);
 const reporteController = new ReporteController(estadisticasService);
 app.use('/api/reportes', crearReportesRoutes(reporteController));
 app.use('/api/pagos/dia/totales', crearTotalesCajaRoutes(db)); // HU-0802 (Javier)
+app.use('/api/pagos', crearPagosRoutes(db)); // HU-0801
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
