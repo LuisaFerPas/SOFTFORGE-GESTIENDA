@@ -12,7 +12,7 @@ const COP = n =>
  * - Navegación con teclado (Flecha Arriba / Flecha Abajo / Enter).
  * - Agregar directo al carrito desde el dropdown con selector de cantidad ágil.
  */
-export function BuscadorNombre({ onAgregar }) {
+export function BuscadorNombre({ onAgregar, onSeleccionar }) {
   const [texto, setTexto]               = useState('');
   const [resultados, setResultados]     = useState([]);
   const [cargando, setCargando]         = useState(false);
@@ -105,13 +105,16 @@ export function BuscadorNombre({ onAgregar }) {
   // Agregar al carrito y reiniciar buscador
   const handleAgregar = useCallback((producto) => {
     const cant = cantidades[producto.id] || 1;
-    onAgregar(producto, cant);
+    const fn = onAgregar || onSeleccionar;
+    if (typeof fn === 'function') {
+      fn(producto, cant);
+    }
     setTexto('');
     setResultados([]);
     setAbierto(false);
     setSinResultados(false);
     inputRef.current?.focus();
-  }, [cantidades, onAgregar]);
+  }, [cantidades, onAgregar, onSeleccionar]);
 
   // Manejo de teclado (Enter, Flechas, Escape)
   const handleKeyDown = (e) => {

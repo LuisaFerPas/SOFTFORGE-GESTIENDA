@@ -52,8 +52,39 @@ export class ApartadoService {
         return Result.fail('El abono inicial no puede ser mayor al total del apartado.');
       }
 
+      let idGenerado = Math.floor(Math.random() * 1000) + 1;
+      let codigoGenerado = 'AP-' + String(idGenerado).padStart(4, '0');
+
+      if (this.apartadoRepository && typeof this.apartadoRepository.guardar === 'function') {
+        const idInsertado = await this.apartadoRepository.guardar({
+          codigo: null,
+          clienteNombre,
+          clienteTelefono: datosApartado.clienteTelefono || null,
+          usuarioId: datosApartado.usuarioId || 1,
+          totalProductos: total,
+          abonoInicial: abono,
+          saldoPendiente: total - abono,
+          estado: 'ACTIVO',
+          fechaCreacion: new Date().toISOString(),
+          productos: productosValidados
+        });
+        idGenerado = idInsertado;
+        codigoGenerado = 'AP-' + String(idInsertado).padStart(4, '0');
+
+        // Descontar stock de productos reservados en inventario
+        if (this.apartadoRepository.db) {
+          const stmtStock = this.apartadoRepository.db.prepare(
+            'UPDATE products SET stock_actual = stock_actual - ? WHERE id = ?'
+          );
+          for (const item of productosValidados) {
+            stmtStock.run(Number(item.cantidad), Number(item.productoId));
+          }
+        }
+      }
+
       const nuevoApartado = {
-        id: Math.floor(Math.random() * 1000) + 1,
+        id: idGenerado,
+        codigo: codigoGenerado,
         clienteNombre,
         abonoInicial: abono,
         total,

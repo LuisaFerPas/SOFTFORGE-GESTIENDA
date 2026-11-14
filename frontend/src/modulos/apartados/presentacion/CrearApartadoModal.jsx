@@ -16,13 +16,15 @@ export function CrearApartadoModal({ onCreado }) {
   const total = productos.reduce((sum, p) => sum + (p.precioVentaUnitario * p.cantidad), 0);
   const saldo = total - (Number(abonoInicial) || 0);
 
-  const agregarProducto = (producto) => {
+  const agregarProducto = (producto, cantidad = 1) => {
+    const cant = Number(cantidad) || 1;
+    const precio = Number(producto.precioVentaUnitario ?? producto.precio_venta_unitario ?? 0);
     setProductos((prev) => {
       const existe = prev.find((p) => p.id === producto.id);
       if (existe) {
-        return prev.map((p) => p.id === producto.id ? { ...p, cantidad: p.cantidad + 1 } : p);
+        return prev.map((p) => p.id === producto.id ? { ...p, cantidad: p.cantidad + cant } : p);
       }
-      return [...prev, { ...producto, cantidad: 1 }];
+      return [...prev, { ...producto, precioVentaUnitario: precio, cantidad: cant }];
     });
     setError('');
   };
@@ -155,7 +157,7 @@ export function CrearApartadoModal({ onCreado }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
               <span style={{ color: '#9CA3AF', fontSize: '0.85rem' }}>— O busca por nombre —</span>
             </div>
-            <BuscadorNombre onBuscar={handleBuscarNombre} onSeleccionar={agregarProducto} />
+            <BuscadorNombre onBuscar={handleBuscarNombre} onAgregar={agregarProducto} onSeleccionar={agregarProducto} />
           </div>
         </div>
 
