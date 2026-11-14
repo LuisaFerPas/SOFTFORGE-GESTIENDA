@@ -40,8 +40,9 @@ export async function registrarAbono(apartadoId, datosAbono) {
 
 /**
  * Cancela un apartado activo y devuelve productos al inventario.
- * HU-0703 (Santiago)
+ * HU-0703
  * @param {number|string} apartadoId
+ * @returns {Promise<{ success: boolean, message: string, data: object }>}
  */
 export async function cancelarApartado(apartadoId) {
   return apiFetch(`/apartados/${apartadoId}/cancelar`, {
