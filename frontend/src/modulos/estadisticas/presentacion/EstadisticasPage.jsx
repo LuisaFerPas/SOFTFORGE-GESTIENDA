@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { ResumenCaja } from './componentes/ResumenCaja';
+import { ListadoPagosDia } from './componentes/ListadoPagosDia';
 import { consultarDesempenioProductos } from '../servicios/estadisticasService';
 
 export function EstadisticasPage() {
@@ -250,9 +251,15 @@ export function EstadisticasPage() {
       )}
 
       {seccionActiva === 'caja' && (
-        <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px' }}>Resumen de Caja Diaria</h3>
-          <ResumenCaja />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '24px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px' }}>Resumen de Caja Diaria</h3>
+            <ResumenCaja />
+          </div>
+
+          <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '24px' }}>
+            <ListadoPagosDia />
+          </div>
         </div>
       )}
     </div>
