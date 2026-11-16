@@ -36,7 +36,7 @@ export function DashboardPage() {
           <span>Nueva venta</span>
         </button>
 
-        {/* Acciones exclusivas de Administrador (HU-0105) */}
+        {/* Acciones exclusivas de Administrador */}
         {isAdmin && (
           <button className="btn-outline" onClick={() => navigate('/inventario')}>
             <Package size={18} />
@@ -55,7 +55,7 @@ export function DashboardPage() {
       {/* Grid de Tarjetas KPI */}
       <TarjetasKPI alertas={alertas} alertasCargando={cargando} alertasError={error} />
 
-      {/* Paneles Inferiores: Stock bajo (solo admin - HU-0105) y Ventas recientes */}
+      {/* Paneles Inferiores: Stock bajo (solo admin) y Ventas recientes */}
       <section className="bottom-grid" style={{ gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr' }}>
         {isAdmin && <PanelStockBajo alertas={alertas} cargando={cargando} error={error} />}
         <PanelVentasRecientes />

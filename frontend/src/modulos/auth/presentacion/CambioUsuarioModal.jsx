@@ -131,7 +131,7 @@ export function CambioUsuarioModal({ isOpen, onClose }) {
               Cambio Rápido de Cajero
             </h3>
             <p style={{ fontSize: '0.78rem', color: '#877468', marginTop: '2px' }}>
-              HU-0203 · Sin cerrar la sesión del sistema
+              Cambio de turno sin cerrar la sesión
             </p>
           </div>
         </div>

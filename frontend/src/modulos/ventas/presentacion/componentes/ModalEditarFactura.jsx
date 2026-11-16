@@ -162,7 +162,7 @@ export function ModalEditarFactura({ abierto, factura, onCerrar, onGuardada }) {
             <div className="fh-modal-identity">
               <span className="fh-modal-symbol"><PencilLine size={23} /></span>
               <div>
-                <p className="fh-overline">HU-0404 · CORRECCIÓN COMPLETADA</p>
+                <p className="fh-overline">CORRECCIÓN COMPLETADA</p>
                 <h2 id="ef-resultado-titulo">Factura corregida</h2>
                 <p id="ef-resultado-desc">{resultado.original} → {resultado.nueva}</p>
               </div>
@@ -223,7 +223,7 @@ export function ModalEditarFactura({ abierto, factura, onCerrar, onGuardada }) {
           <div className="fh-modal-identity">
             <span className="fh-modal-symbol"><PencilLine size={23} /></span>
             <div>
-              <p className="fh-overline">HU-0404 · CORRECCIÓN DE FACTURA</p>
+              <p className="fh-overline">CORRECCIÓN DE FACTURA</p>
               <h2 id="ef-titulo">Corregir nombre del cliente</h2>
               <p id="ef-descripcion">{factura.consecutivo} · Venta #{factura.ventaId}</p>
             </div>

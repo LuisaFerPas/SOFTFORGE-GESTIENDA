@@ -138,7 +138,7 @@ export function ReutilizarVentaButton({ factura }) {
               <div className="fh-modal-identity">
                 <span className="fh-modal-symbol ef-symbol--danger"><RotateCcw size={23} /></span>
                 <div>
-                  <p className="fh-overline">HU-0404 · ANULAR Y REUTILIZAR</p>
+                  <p className="fh-overline">ANULAR Y REUTILIZAR</p>
                   <h2 id="ef-reuso-titulo">¿Anular esta venta?</h2>
                   <p id="ef-reuso-descripcion">{factura.consecutivo} · Venta #{factura.ventaId}</p>
                 </div>

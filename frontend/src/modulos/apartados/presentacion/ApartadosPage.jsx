@@ -14,7 +14,7 @@ export function ApartadosPage() {
 
   const handleApartadoCreado = () => {
     setRefresh(prev => prev + 1);
-    setTabActiva('activos'); // HU-0701.5: Redirigir a pestaña Activos
+    setTabActiva('activos'); // Redirigir a pestaña Activos
   };
 
   return (
@@ -25,7 +25,7 @@ export function ApartadosPage() {
             Don Mati — Apartados
           </h1>
           <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '4px' }}>
-            Control de separados con abonos parciales y reserva de mercancía · HE-07
+            Control de separados con abonos parciales y reserva de mercancía
           </p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export function ApartadosPage() {
         </div>
       )}
 
-      {/* HU-0701.4: Integramos el nuevo componente */}
+      {/* Componente para creación de apartados */}
       {tabActiva === 'nuevo' && (
         <CrearApartadoModal onCreado={handleApartadoCreado} />
       )}

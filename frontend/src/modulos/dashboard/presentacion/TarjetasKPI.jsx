@@ -33,7 +33,7 @@ export function TarjetasKPI({ alertas = [], alertasCargando = false, alertasErro
         </div>
       )}
 
-      {/* KPI 3: Stock Bajo (Exclusivo Administrador - HU-0105: Vendedor no puede ver cantidades de stock) */}
+      {/* KPI 3: Stock Bajo (Exclusivo Administrador: Vendedor no puede ver cantidades de stock) */}
       {isAdmin && (
         <div className="kpi-card">
           <div className="kpi-icon-pill" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>

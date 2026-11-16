@@ -32,10 +32,11 @@ export function App() {
               <Route path="/ventas/facturas" element={<HistorialFacturasPage />} />
               <Route path="/apartados" element={<ApartadosPage />} />
 
-              {/* Rutas exclusivas para el Administrador (HU-0105) */}
+              {/* Rutas exclusivas para el Administrador */}
               <Route element={<ProtectedRoute allowedRoles={['ADMINISTRADOR']} />}>
                 <Route path="/inventario" element={<InventarioPage />} />
-                <Route path="/usuarios" element={<UsuariosPage />} />`r`n                <Route path="/estadisticas" element={<EstadisticasPage />} />
+                <Route path="/usuarios" element={<UsuariosPage />} />
+                <Route path="/estadisticas" element={<EstadisticasPage />} />
               </Route>
             </Route>
           </Route>

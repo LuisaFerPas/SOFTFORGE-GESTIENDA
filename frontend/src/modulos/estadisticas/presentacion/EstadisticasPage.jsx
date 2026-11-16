@@ -112,10 +112,10 @@ export function EstadisticasPage() {
 
       <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #E5E7EB', marginBottom: '20px', overflowX: 'auto' }}>
         {[
-          { id: 'ventas', label: 'Ventas (HU-0901)', icon: TrendingUp },
-          { id: 'productos', label: 'Productos (HU-0902)', icon: ShoppingBag },
-          { id: 'financiero', label: 'Financiero (HU-0903)', icon: DollarSign },
-          { id: 'graficas', label: 'Gráficas (HU-0904)', icon: BarChart2 },
+          { id: 'ventas', label: 'Ventas', icon: TrendingUp },
+          { id: 'productos', label: 'Productos', icon: ShoppingBag },
+          { id: 'financiero', label: 'Financiero', icon: DollarSign },
+          { id: 'graficas', label: 'Gráficas', icon: BarChart2 },
           { id: 'caja', label: 'Cierre de Caja', icon: Wallet }
         ].map(item => {
           const IconComponent = item.icon;
@@ -304,7 +304,7 @@ export function EstadisticasPage() {
         <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '36px', textAlign: 'center' }}>
           <BarChart2 size={48} style={{ color: '#FF6600', margin: '0 auto 12px auto' }} />
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1F2937' }}>Visualización de Gráficas Estadísticas</h3>
-          <p style={{ color: '#6B7280', fontSize: '0.9rem' }}>Sección reservada para HU-0904.</p>
+          <p style={{ color: '#6B7280', fontSize: '0.9rem' }}>Módulo de análisis visual y gráficos en preparación.</p>
         </div>
       )}
 

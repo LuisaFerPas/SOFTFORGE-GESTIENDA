@@ -49,7 +49,7 @@ export function Sidebar() {
             <span>Inicio</span>
           </NavLink>
 
-          {/* Menú Inventario: Exclusivo de Administrador (HU-0105) */}
+          {/* Menú Inventario: Exclusivo de Administrador */}
           {isAdmin && (
             <NavLink to="/inventario" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Package size={18} />
@@ -67,7 +67,7 @@ export function Sidebar() {
             <span>Facturas</span>
           </NavLink>
 
-          {/* Menú Usuarios: Exclusivo de Administrador (HU-0105) */}
+          {/* Menú Usuarios: Exclusivo de Administrador */}
           {isAdmin && (
             <NavLink to="/usuarios" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <Users size={18} />
@@ -78,7 +78,7 @@ export function Sidebar() {
           {/* Sección Reportes / Apartados */}
           {isAdmin && <div className="nav-section-label">Reportes</div>}
 
-          {/* Menú Estadísticas: Exclusivo de Administrador (HU-0105 / RS-03) */}
+          {/* Menú Estadísticas: Exclusivo de Administrador */}
           {isAdmin && (
             <NavLink to="/estadisticas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <BarChart2 size={18} />
@@ -105,7 +105,7 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Botón Cambio Rápido de Cajero (HU-0203) */}
+        {/* Botón Cambio Rápido de Cajero */}
         <button
           onClick={() => setModalAbierto(true)}
           className="logout-button"
@@ -122,7 +122,7 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Modal de Cambio Rápido de Cajero (HU-0203) */}
+      {/* Modal de Cambio Rápido de Cajero */}
       <CambioUsuarioModal
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}

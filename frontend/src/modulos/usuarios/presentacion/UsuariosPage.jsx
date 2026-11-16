@@ -17,7 +17,7 @@ export function UsuariosPage() {
         <div>
           <h1 className="header-title" style={{ fontSize: '1.6rem' }}>Gestión de Usuarios</h1>
           <p style={{ color: '#877468', fontSize: '0.9rem' }}>
-            Control de cuentas y perfiles de acceso (Administrador y Vendedor) · HE-01
+            Control de cuentas y perfiles de acceso (Administrador y Vendedor)
           </p>
         </div>
 
