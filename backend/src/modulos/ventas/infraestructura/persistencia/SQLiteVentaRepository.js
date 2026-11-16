@@ -126,41 +126,12 @@ export class SQLiteVentaRepository extends IVentaRepository {
           });
         }
       }
-
-      // SIEMPRE generar y guardar la factura vinculada a la venta
-      const { ultimo } = db.prepare(`
-        SELECT COALESCE(MAX(CAST(SUBSTR(consecutivo, 3) AS INTEGER)), 0) AS ultimo
-        FROM facturas
-        WHERE consecutivo GLOB 'F-[0-9]*'
-      `).get();
-      const siguiente = Number(ultimo) + 1;
-      if (!Number.isSafeInteger(siguiente)) {
-        throw new Error('Se agotó el rango de consecutivos de factura.');
-      }
-      const consecutivo = `F-${String(siguiente).padStart(4, '0')}`;
-      const nombreCliente = (pago.nombreCliente || venta.nombreCliente || 'Consumidor Final').trim() || 'Consumidor Final';
-
-      const infoFactura = db.prepare(`
-        INSERT INTO facturas
-          (venta_id, consecutivo, nombre_cliente, fecha_emision, estado)
-        VALUES (?, ?, ?, ?, 'EMITIDA')
-      `).run(ventaId, consecutivo, nombreCliente, now);
-
-      const facturaGenerada = {
-        id: Number(infoFactura.lastInsertRowid),
-        ventaId,
-        consecutivo,
-        nombreCliente,
-        fechaEmision: now,
-        estado: 'EMITIDA'
-      };
-
       db.exec('COMMIT');
       // SD-117: advertencia en el servidor solo tras confirmar la transacción.
       for (const aviso of advertencias) {
         console.warn(`[Inventario] Venta #${ventaId}: stock insuficiente para producto ${aviso.productoId}; stock final ${aviso.stockNuevo}.`);
       }
-      return { id: ventaId, total, medioPago: pago.medioPago, cambio, advertencias, factura: facturaGenerada };
+      return { id: ventaId, total, medioPago: pago.medioPago, cambio, advertencias };
     } catch (error) {
       db.exec('ROLLBACK');
       throw error;
@@ -195,18 +166,9 @@ export class SQLiteVentaRepository extends IVentaRepository {
       const venta = db.prepare('SELECT id FROM sales WHERE id = ?').get(factura.ventaId);
       if (!venta) throw new Error('La venta indicada no existe.');
 
-      const yaExiste = db.prepare('SELECT * FROM facturas WHERE venta_id = ?')
+      const yaExiste = db.prepare('SELECT id FROM facturas WHERE venta_id = ?')
         .get(factura.ventaId);
-      if (yaExiste) {
-        // Si ya existe la factura y se pasó un nombre de cliente específico, actualizamos el nombre
-        if (factura.nombreCliente && factura.nombreCliente.trim() && factura.nombreCliente.trim() !== yaExiste.nombre_cliente) {
-          db.prepare('UPDATE facturas SET nombre_cliente = ? WHERE id = ?')
-            .run(factura.nombreCliente.trim(), yaExiste.id);
-          yaExiste.nombre_cliente = factura.nombreCliente.trim();
-        }
-        db.exec('COMMIT');
-        return FacturaMapper.aEntidad(yaExiste);
-      }
+      if (yaExiste) throw new Error('La venta ya tiene una factura registrada.');
 
       // Se toma el mayor consecutivo numérico, no el ID de la venta ni
       // un conteo de facturas, para evitar colisiones ante ventas sin factura.
