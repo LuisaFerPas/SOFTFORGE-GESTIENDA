@@ -197,7 +197,7 @@ export function HistorialFacturasPage() {
       <section className="fh-summary" aria-label="Resumen del historial">
         <div className="fh-summary-icon"><ReceiptText size={23}/></div>
         <div><span>Facturas según los filtros</span><strong>{paginacion.total}</strong></div>
-        <p>Solo se muestran facturas registradas en la base de datos. Una venta sin factura no aparece en esta lista.</p>
+        <p>Solo se muestran facturas registradas en el sistema</p>
       </section>
 
       <section className="fh-card" aria-label="Listado de facturas">
@@ -247,7 +247,7 @@ export function HistorialFacturasPage() {
           </div>
         </>}
       </section>
-      <p className="fh-footer-note"><ShoppingBag size={17}/> ¿No aparece una venta? Solo las ventas para las que se confirmó «Sí, imprimir» tienen factura registrada.</p>
+      <p className="fh-footer-note"><ShoppingBag size={17}/> ¿No aparece una venta? Solo las ventas realizadas por medio del sistema tienen facturas registradas aqui</p>
       {cargandoDetalle && <div className="fh-floating-status" role="status"><LoaderCircle className="fh-rotate" size={18}/> Cargando detalle…</div>}
       {errorDetalle && <div className="fh-floating-error" role="alert"><AlertCircle size={18}/>{errorDetalle}<button type="button" onClick={()=>setErrorDetalle('')} aria-label="Cerrar error"><X size={16}/></button></div>}
       {aviso && <div className="fh-floating-success" role="status"><CheckCircle2 size={18}/>{aviso}</div>}

@@ -86,7 +86,8 @@ export class VentaService {
         medioPago: payload.medioPago,
         montoRecibido: payload.montoRecibido,
         montoEfectivo: payload.montoEfectivo,
-        montoNequi: payload.montoNequi
+        montoNequi: payload.montoNequi,
+        nombreCliente: payload.nombreCliente
       };
       const repo = this.ventaRepository;
       const guardar = typeof repo.guardar === 'function' ? repo.guardar.bind(repo)

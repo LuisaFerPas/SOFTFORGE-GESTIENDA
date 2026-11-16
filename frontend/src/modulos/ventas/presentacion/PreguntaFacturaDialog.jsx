@@ -11,11 +11,11 @@ import { generarFactura, generarEImprimirFacturaApi } from '../servicios/ventasS
  * Nunca genera al abrir. Solo ejecuta POST /ventas/facturas al pulsar «Sí, imprimir».
  * HU-0402.4: Permite enviar a la impresora tras generar la factura.
  */
-export function PreguntaFacturaDialog({ abierto, ventaId, onCerrar, onGenerada }) {
+export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerrar, onGenerada }) {
   const [nombreCliente, setNombreCliente] = useState('');
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-  const [factura, setFactura] = useState(null);
+  const [factura, setFactura] = useState(facturaInicial || null);
   
   // NUEVOS ESTADOS PARA LA IMPRESIÓN
   const [imprimiendo, setImprimiendo] = useState(false);
@@ -32,14 +32,14 @@ export function PreguntaFacturaDialog({ abierto, ventaId, onCerrar, onGenerada }
 
   useEffect(() => {
     if (!abierto) return;
-    setNombreCliente('');
+    setNombreCliente(facturaInicial?.nombreCliente || '');
     setError('');
-    setFactura(null);
+    setFactura(facturaInicial || null);
     setProcesando(false);
     setImprimiendo(false);
     setImpreso(false);
     enCursoRef.current = false;
-  }, [abierto, ventaId]);
+  }, [abierto, ventaId, facturaInicial]);
 
   useEffect(() => {
     if (!abierto) return undefined;
@@ -152,12 +152,12 @@ export function PreguntaFacturaDialog({ abierto, ventaId, onCerrar, onGenerada }
             <div>
               <span className="pos-eyebrow">VENTA #{ventaId} REGISTRADA</span>
               <h2 id="pos-factura-title">
-                {factura ? 'Factura generada correctamente' : '¿Desea imprimir la factura?'}
+                {factura ? `Factura ${factura.consecutivo} guardada` : 'Factura registrada'}
               </h2>
               <p id="pos-factura-description">
                 {factura
-                  ? 'La factura quedó asociada a la venta y tiene consecutivo.'
-                  : 'Puedes emitir una factura o continuar sin generarla.'}
+                  ? 'La factura ha sido guardada en la base de datos. Puedes imprimir el ticket a continuación.'
+                  : 'La factura ha sido registrada exitosamente en el sistema.'}
               </p>
             </div>
           </div>
@@ -223,7 +223,7 @@ export function PreguntaFacturaDialog({ abierto, ventaId, onCerrar, onGenerada }
             <>
               <button ref={terminarRef} type="button" className="pos-modal-cancel"
                 onClick={omitir} disabled={imprimiendo}>
-                {impreso ? 'Cerrar' : 'No imprimir'}
+                {impreso ? 'Cerrar' : 'No imprimir (Listo)'}
               </button>
               
               {!impreso ? (

@@ -309,6 +309,7 @@ export function VentasPage() {
         throw new Error('El servidor no devolvió la confirmación de la venta.');
       }
 
+      const facturaAuto = respuesta.data.factura ?? null;
       setConfirmacion({
         ...respuesta.data,
         medioPago,
@@ -316,7 +317,7 @@ export function VentasPage() {
           (medioPago === 'EFECTIVO' ? Number(montoRecibido) - total : 0)
       });
       setDialogoAbierto(false);
-      setFacturaGenerada(null);
+      setFacturaGenerada(facturaAuto);
       setPreguntarFactura(true);
       setCarrito([]);
       setBusqueda('');
@@ -384,7 +385,7 @@ export function VentasPage() {
             {precargaInfo.preciosActualizados && (
               <p>Algunos precios se actualizaron a los vigentes del catálogo.</p>
             )}
-            <p>La nueva factura solo se generará si confirmas la emisión al finalizar la venta.</p>
+           
           </div>
           <button type="button" onClick={() => setPrecargaInfo(null)} aria-label="Cerrar aviso de precarga">
             <X size={18} />
@@ -592,6 +593,7 @@ export function VentasPage() {
       <PreguntaFacturaDialog
         abierto={preguntarFactura}
         ventaId={confirmacion?.id}
+        facturaInicial={confirmacion?.factura || facturaGenerada}
         onCerrar={() => setPreguntarFactura(false)}
         onGenerada={(factura) => {
           setFacturaGenerada(factura);
