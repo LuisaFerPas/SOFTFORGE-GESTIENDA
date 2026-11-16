@@ -5,6 +5,7 @@ import { inicializarEsquema } from './infraestructura/database/esquema.js';
 import { eventBus } from './shared/EventBus.js';
 import { ImpresoraTermicaAdapter } from './infraestructura/impresora/impresoraTermica.js';
 import { ImpresoraMockAdapter } from './modulos/ventas/infraestructura/impresora/impresoraMock.js';
+import { obtenerIpLocal } from './compartido/utilidades/red.js';
 
 // Módulo: Usuarios & Auth
 import { UsuarioRepository } from './modulos/usuarios/dominio/UsuarioRepository.js';
@@ -58,11 +59,32 @@ app.use(cors({
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
+  const ipLocal = obtenerIpLocal();
+  const PORT = process.env.PORT || 3000;
   res.json({
     status: 'OK',
     app: 'Gestienda Backend API Modular',
     database: 'SQLite (better-sqlite3)',
+    red: {
+      ipLocal,
+      puerto: PORT,
+      urlMovil: `http://${ipLocal}:${PORT}`
+    },
     timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/sistema/red', (req, res) => {
+  const ipLocal = obtenerIpLocal();
+  const PORT = process.env.PORT || 3000;
+  res.json({
+    success: true,
+    data: {
+      ipLocal,
+      puerto: PORT,
+      urlPc: `http://localhost:${PORT}`,
+      urlMovil: `http://${ipLocal}:${PORT}`
+    }
   });
 });
 

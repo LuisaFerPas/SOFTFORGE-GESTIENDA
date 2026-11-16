@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Plus, Lock } from 'lucide-react';
+import { Users, Lock } from 'lucide-react';
 import { TablaUsuarios } from './TablaUsuarios';
 import { useAuth } from '../../../compartido/contexto/AuthContext.jsx';
 import CambiarPasswordModal from './CambiarPasswordModal.jsx';
@@ -46,11 +46,6 @@ export function UsuariosPage() {
               <span>Cambiar Contraseñas</span>
             </button>
           )}
-
-          <button className="btn-primary" style={{ padding: '10px 16px', fontSize: '0.9rem' }}>
-            <Plus size={18} />
-            <span>Nuevo Usuario</span>
-          </button>
 
         </div>
       </div>

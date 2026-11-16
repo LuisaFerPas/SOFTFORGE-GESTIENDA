@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Store, LogIn, AlertCircle, Eye, EyeOff, Smartphone } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { loginApi } from '../servicios/authService';
 
@@ -10,8 +10,20 @@ export function LoginPage() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [infoRed, setInfoRed] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch('/api/sistema/red')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.data) {
+          setInfoRed(data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,7 +107,7 @@ export function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Ej: admin1, admin2 o vendedor"
+              placeholder="Ingresa tu usuario"
               required
               style={{
                 width: '100%',
@@ -176,8 +188,30 @@ export function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.78rem', color: '#B58463' }}>
-          Credenciales por defecto: <strong>admin1 / admin123, admin2 / admin123, vendedor / vendedor123</strong>
+        {infoRed?.urlMovil && (
+          <div style={{
+            marginTop: '20px',
+            padding: '10px 14px',
+            backgroundColor: '#FFF7ED',
+            border: '1px solid #FFEDD5',
+            borderRadius: '12px',
+            textAlign: 'center',
+            fontSize: '0.82rem',
+            color: '#9A3412',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <Smartphone size={16} style={{ color: '#FF6600', flexShrink: 0 }} />
+            <span>
+              Acceso celular en tienda: <strong>{infoRed.urlMovil}</strong>
+            </span>
+          </div>
+        )}
+
+        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.8rem', color: '#877468' }}>
+          Variedades Don Mati · Sistema de Punto de Venta Local
         </div>
       </div>
     </div>

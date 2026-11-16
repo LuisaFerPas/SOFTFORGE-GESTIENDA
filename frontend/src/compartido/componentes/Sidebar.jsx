@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Store, 
@@ -10,7 +10,8 @@ import {
   FileText, 
   LogOut,
   Repeat,
-  ReceiptText
+  ReceiptText,
+  Wifi
 } from 'lucide-react';
 import { useAuth } from '../contexto/AuthContext';
 import { CambioUsuarioModal } from '../../modulos/auth/presentacion/CambioUsuarioModal';
@@ -19,6 +20,18 @@ export function Sidebar() {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [urlMovil, setUrlMovil] = useState('');
+
+  useEffect(() => {
+    fetch('/api/sistema/red')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.data?.urlMovil) {
+          setUrlMovil(data.data.urlMovil);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -95,6 +108,26 @@ export function Sidebar() {
 
       {/* Footer con Usuario y Salida */}
       <div className="sidebar-footer">
+        {urlMovil && (
+          <div style={{
+            padding: '6px 10px',
+            backgroundColor: '#FFF7ED',
+            border: '1px solid #FFEDD5',
+            borderRadius: '8px',
+            fontSize: '0.72rem',
+            color: '#9A3412',
+            marginBottom: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }} title="Enlace para celulares en la misma red Wi-Fi">
+            <Wifi size={13} style={{ color: '#FF6600', flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+              {urlMovil}
+            </span>
+          </div>
+        )}
+
         <div className="user-profile">
           <div className="user-avatar">
             {initial}
