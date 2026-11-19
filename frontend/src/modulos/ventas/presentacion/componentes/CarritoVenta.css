@@ -29,3 +29,38 @@
 .cv-cart-error span {
   overflow-wrap: anywhere;
 }
+
+.cv-btn-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cv-btn-quitar:hover:not(:disabled) {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+  transform: translateY(-1px);
+}
+
+.cv-btn-quitar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cv-btn-quitar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -72,26 +72,13 @@ function LineaCarrito({ item, onCambiarCantidad, onEliminar, deshabilitado, form
         </div>
         <button
           type="button"
-          className="pos-trash"
+          className="cv-btn-quitar"
           disabled={deshabilitado}
           title={`Quitar ${item.nombre}`}
           aria-label={`Quitar ${item.nombre} del carrito`}
           onClick={() => onEliminar?.(item.id)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            fontSize: '0.88rem',
-            fontWeight: 700,
-            color: '#b91c1c',
-            backgroundColor: '#fee2e2',
-            border: '1.5px solid #fecaca',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
         >
-          <Trash2 size={16} />
+          <Trash2 size={14} />
           <span>Quitar</span>
         </button>
       </div>
