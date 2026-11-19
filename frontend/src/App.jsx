@@ -21,14 +21,14 @@ export function App() {
       <BrowserRouter>
         <Suspense fallback={<main className="gest-route-loading" role="status" aria-live="polite">Cargando Gestienda…</main>}>
         <Routes>
-          {/* Ruta pÃºblica */}
+          {/* Ruta pública */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Rutas protegidas dentro del Dashboard Layout */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               {/* Rutas accesibles para todos los roles autenticados */}
               <Route path="/ventas" element={<VentasPage />} />
               <Route path="/ventas/facturas" element={<HistorialFacturasPage />} />
@@ -44,7 +44,7 @@ export function App() {
           </Route>
 
           {/* Ruta por defecto */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         </Suspense>
       </BrowserRouter>

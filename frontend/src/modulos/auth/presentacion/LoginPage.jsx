@@ -14,7 +14,7 @@ export function LoginPage() {
     catch { return false; }
   });
   const [loading, setLoading] = useState(false);
-  const [infoRed, setInfoRed] = useState(null);
+  const [infoRed, setInfoRed] = useState({ urlMovil: 'http://192.168.10.26:5173/' });
   const { login } = useAuth();
   const navigate = useNavigate();
 

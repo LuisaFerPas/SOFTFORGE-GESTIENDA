@@ -20,7 +20,7 @@ export function Sidebar() {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [urlMovil, setUrlMovil] = useState('');
+  const [urlMovil, setUrlMovil] = useState('http://192.168.10.26:5173/');
 
   useEffect(() => {
     fetch('/api/sistema/red')
@@ -57,7 +57,7 @@ export function Sidebar() {
 
         {/* Navigation Menu */}
         <nav className="sidebar-nav">
-          <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/dashboard" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <LayoutGrid size={18} />
             <span>Inicio</span>
           </NavLink>

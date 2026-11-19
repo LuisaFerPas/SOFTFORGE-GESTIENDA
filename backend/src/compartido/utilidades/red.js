@@ -15,5 +15,5 @@ export function obtenerIpLocal() {
       }
     }
   }
-  return 'localhost';
+  return '192.168.10.26';
 }

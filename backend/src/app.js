@@ -61,6 +61,7 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   const ipLocal = obtenerIpLocal();
   const PORT = process.env.PORT || 3000;
+  const FRONTEND_PORT = process.env.FRONTEND_PORT || 5173;
   res.json({
     status: 'OK',
     app: 'Gestienda Backend API Modular',
@@ -68,7 +69,8 @@ app.get('/api/health', (req, res) => {
     red: {
       ipLocal,
       puerto: PORT,
-      urlMovil: `http://${ipLocal}:${PORT}`
+      puertoFrontend: FRONTEND_PORT,
+      urlMovil: `http://${ipLocal}:${FRONTEND_PORT}/`
     },
     timestamp: new Date().toISOString()
   });
@@ -77,13 +79,15 @@ app.get('/api/health', (req, res) => {
 app.get('/api/sistema/red', (req, res) => {
   const ipLocal = obtenerIpLocal();
   const PORT = process.env.PORT || 3000;
+  const FRONTEND_PORT = process.env.FRONTEND_PORT || 5173;
   res.json({
     success: true,
     data: {
       ipLocal,
       puerto: PORT,
-      urlPc: `http://localhost:${PORT}`,
-      urlMovil: `http://${ipLocal}:${PORT}`
+      puertoFrontend: FRONTEND_PORT,
+      urlPc: `http://localhost:${FRONTEND_PORT}/`,
+      urlMovil: `http://${ipLocal}:${FRONTEND_PORT}/`
     }
   });
 });
