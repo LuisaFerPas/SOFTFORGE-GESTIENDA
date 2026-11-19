@@ -1,3 +1,5 @@
+import { SQLiteFacturaConsultaRepository } from '../infraestructura/persistencia/SQLiteFacturaConsultaRepository.js';
+
 export class VentaController {
   constructor(ventaService, facturacionService, productoRepository, productoService = null, db = null) {
     this.ventaService = ventaService;
@@ -217,10 +219,42 @@ export class VentaController {
    */
   async buscarFactura(req, res) {
     const { consecutivo } = req.params;
+    if (this.db) {
+      try {
+        const repo = new SQLiteFacturaConsultaRepository(this.db);
+        const factura = repo.obtenerPorConsecutivo(consecutivo);
+        if (factura) {
+          return res.status(200).json({ success: true, data: factura });
+        }
+      } catch (e) {
+        // Fallback al servicio si formato o error
+      }
+    }
+
     const resultado = await this.facturacionService.prepararReimpresion(consecutivo);
     if (resultado.isFailure) {
       return res.status(404).json({ success: false, message: resultado.error });
     }
-    return res.status(200).json({ success: true, data: resultado.getValue().factura });
+    const val = resultado.getValue();
+    const facturaPlana = typeof val.factura?.aObjetoPlano === 'function'
+      ? val.factura.aObjetoPlano()
+      : (val.factura || {});
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...facturaPlana,
+        total: val.venta?.total ?? facturaPlana.total ?? 0,
+        medioPago: val.venta?.medioPago ?? facturaPlana.medioPago ?? 'EFECTIVO',
+        pago: val.venta?.pago || { cambio: val.venta?.cambio ?? 0 },
+        items: (val.venta?.items || []).map(i => ({
+          productoId: i.productoId,
+          nombre: i.nombre || i.descripcion || `Producto #${i.productoId}`,
+          cantidad: Number(i.cantidad),
+          precioUnitario: Number(i.precioUnitario),
+          subtotal: Number(i.subtotal)
+        }))
+      }
+    });
   }
 }

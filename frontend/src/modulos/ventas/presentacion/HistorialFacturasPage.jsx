@@ -30,7 +30,7 @@ function fechaLegible(valor) {
 function VistaFactura({ factura, onCerrar }) {
   const cerrarRef = useRef(null);
   const previoRef = useRef(null);
-  const imprimir = factura.estado === 'EMITIDA';
+  const imprimir = factura?.estado === 'EMITIDA';
 
   useEffect(() => {
     previoRef.current = document.activeElement;
@@ -56,6 +56,9 @@ function VistaFactura({ factura, onCerrar }) {
     };
   }, [onCerrar]);
 
+  if (!factura) return null;
+  const items = Array.isArray(factura.items) ? factura.items : [];
+
   return createPortal(
     <div className="fh-overlay">
       <section className="fh-modal" role="dialog" aria-modal="true" aria-labelledby="fh-modal-titulo">
@@ -64,8 +67,8 @@ function VistaFactura({ factura, onCerrar }) {
             <span className="fh-modal-symbol"><ReceiptText size={23} /></span>
             <div>
               <p className="fh-overline">VISTA DE FACTURA</p>
-              <h2 id="fh-modal-titulo">{factura.consecutivo}</h2>
-              <p>Venta #{factura.ventaId} · {fechaLegible(factura.fechaEmision)}</p>
+              <h2 id="fh-modal-titulo">{factura.consecutivo || 'Factura'}</h2>
+              <p>Venta #{factura.ventaId || '—'} · {fechaLegible(factura.fechaEmision)}</p>
             </div>
           </div>
           <button className="fh-icon-button" type="button" aria-label="Cerrar vista" onClick={onCerrar} ref={cerrarRef}><X size={20}/></button>
@@ -77,21 +80,30 @@ function VistaFactura({ factura, onCerrar }) {
               <strong>Variedades Don Mati</strong>
               <span>Comprobante de venta · Gestienda</span>
             </div>
-            <div className="fh-ticket-pair"><span>Factura</span><b>{factura.consecutivo}</b></div>
+            <div className="fh-ticket-pair"><span>Factura</span><b>{factura.consecutivo || '—'}</b></div>
             <div className="fh-ticket-pair"><span>Fecha</span><b>{fechaLegible(factura.fechaEmision)}</b></div>
-            <div className="fh-ticket-pair"><span>Cliente</span><b>{factura.nombreCliente}</b></div>
-            <div className="fh-ticket-pair"><span>Estado</span><b>{factura.estado}</b></div>
+            <div className="fh-ticket-pair"><span>Cliente</span><b>{factura.nombreCliente || 'Consumidor Final'}</b></div>
+            <div className="fh-ticket-pair"><span>Estado</span><b>{factura.estado || 'EMITIDA'}</b></div>
             <div className="fh-ticket-items">
               <div className="fh-ticket-columns"><span>Producto</span><span>Total</span></div>
-              {factura.items.map((item, i) => (
-                <div className="fh-ticket-item" key={`${item.productoId}-${i}`}>
-                  <div><strong>{item.nombre}</strong><small>{item.cantidad} × {dinero(item.precioUnitario)}</small></div>
-                  <b>{dinero(item.subtotal)}</b>
+              {items.length > 0 ? (
+                items.map((item, i) => (
+                  <div className="fh-ticket-item" key={`${item.productoId || i}-${i}`}>
+                    <div>
+                      <strong>{item.nombre || item.descripcion || `Producto #${item.productoId || i + 1}`}</strong>
+                      <small>{item.cantidad ?? 1} × {dinero(item.precioUnitario)}</small>
+                    </div>
+                    <b>{dinero(item.subtotal)}</b>
+                  </div>
+                ))
+              ) : (
+                <div className="fh-ticket-item" style={{ color: '#6b7280', fontStyle: 'italic', padding: '10px 0' }}>
+                  <span>Venta registrada sin desglose individual</span>
                 </div>
-              ))}
+              )}
             </div>
             <div className="fh-ticket-total"><span>TOTAL</span><strong>{dinero(factura.total)}</strong></div>
-            <div className="fh-ticket-pair"><span>Medio de pago</span><b>{factura.medioPago}</b></div>
+            <div className="fh-ticket-pair"><span>Medio de pago</span><b>{factura.medioPago || 'EFECTIVO'}</b></div>
             {factura.pago?.cambio > 0 && <div className="fh-ticket-pair"><span>Cambio</span><b>{dinero(factura.pago.cambio)}</b></div>}
             <p className="fh-ticket-footer">Gracias por tu compra.</p>
             <p className="fh-ticket-legal">Comprobante interno de venta. No constituye factura electrónica validada por la DIAN.</p>
