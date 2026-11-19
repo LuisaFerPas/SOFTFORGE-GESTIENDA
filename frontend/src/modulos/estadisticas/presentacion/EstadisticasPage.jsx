@@ -11,13 +11,48 @@ import {
 import { useAuth } from '../../../compartido/contexto/AuthContext';
 import { ResumenCaja } from './componentes/ResumenCaja';
 import { ListadoPagosDia } from './componentes/ListadoPagosDia';
-import { consultarDesempenioProductos, consultarVentasPorPeriodo } from '../servicios/estadisticasService';
+import { consultarDesempenioProductos, consultarVentasPorPeriodo, consultarResumenFinanciero } from '../servicios/estadisticasService';
 import { formatCOP } from '../../inventario/utilidades/formatoMoneda.js';
+import { GraficasVentas } from './componentes/GraficasVentas.jsx';
+import './estadisticasAvanzadas.css';
+import { MobileDetailCard, CampoDetalle } from '../../../compartido/componentes/MobileDetailCard';
+import './estadisticasEntrega.css';
 
 export function EstadisticasPage() {
   const { isAdmin } = useAuth();
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState('MES');
   const [seccionActiva, setSeccionActiva] = useState('ventas');
+  const [reintentosFinanciero, setReintentosFinanciero] = useState(0);
+
+  const [financiero, setFinanciero] = useState(null);
+  const [cargandoFinanciero, setCargandoFinanciero] = useState(false);
+  const [errorFinanciero, setErrorFinanciero] = useState('');
+
+  useEffect(() => {
+    if (!isAdmin || !['financiero', 'graficas'].includes(seccionActiva)) return;
+    let vigente = true;
+    setCargandoFinanciero(true);
+    setErrorFinanciero('');
+    consultarResumenFinanciero(periodoSeleccionado)
+      .then(respuesta => { if (vigente) setFinanciero(respuesta.data); })
+      .catch(error => { if (vigente) setErrorFinanciero(error.message || 'No se pudo cargar el resumen financiero.'); })
+      .finally(() => { if (vigente) setCargandoFinanciero(false); });
+    return () => { vigente = false; };
+  }, [isAdmin, seccionActiva, periodoSeleccionado, reintentosFinanciero]);
+
+  const [ventasComparadas, setVentasComparadas] = useState([]);
+  const [cargandoComparacion, setCargandoComparacion] = useState(false);
+  useEffect(() => {
+    if (!isAdmin || seccionActiva !== 'graficas') return;
+    let vigente = true;
+    setCargandoComparacion(true);
+    Promise.all(['DIA', 'SEMANA', 'MES', 'AÑO'].map(periodo =>
+      consultarVentasPorPeriodo(periodo).then(respuesta => ({ periodo, total: Number(respuesta?.data?.totalVentas) || 0 }))
+    )).then(datos => { if (vigente) setVentasComparadas(datos); })
+      .catch(() => { if (vigente) setVentasComparadas([]); })
+      .finally(() => { if (vigente) setCargandoComparacion(false); });
+    return () => { vigente = false; };
+  }, [isAdmin, seccionActiva]);
 
   // Estados para HU-0902.4
   const [datosProductos, setDatosProductos] = useState(null);
@@ -87,17 +122,19 @@ export function EstadisticasPage() {
   ];
 
   return (
-    <div style={{ padding: '8px 0' }}>
-      <div className="panel-header" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+    <div className="est-page">
+      <div className="panel-header est-page-header">
         <div>
           <h1 className="header-title" style={{ fontSize: '1.6rem', color: '#1F2937' }}>Don Mati — Estadísticas y Reportes</h1>
           <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '4px' }}>Métricas de ventas, rendimiento de catálogo, balance financiero y caja</p>
         </div>
 
-        <div style={{ display: 'flex', backgroundColor: '#F3F4F6', borderRadius: '8px', padding: '4px', gap: '4px' }}>
+        <div className="est-periods" role="group" aria-label="Filtrar por período">
           {periodos.map(p => (
             <button
               key={p.id}
+              type="button"
+              aria-pressed={periodoSeleccionado === p.id}
               onClick={() => setPeriodoSeleccionado(p.id)}
               style={{
                 border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
@@ -110,7 +147,7 @@ export function EstadisticasPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #E5E7EB', marginBottom: '20px', overflowX: 'auto' }}>
+      <div className="est-tabs" role="tablist" aria-label="Secciones de estadísticas">
         {[
           { id: 'ventas', label: 'Ventas', icon: TrendingUp },
           { id: 'productos', label: 'Productos', icon: ShoppingBag },
@@ -123,7 +160,9 @@ export function EstadisticasPage() {
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => setSeccionActiva(item.id)}
+              role="tab" aria-selected={activa}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '0.9rem', fontWeight: 600, border: 'none',
                 borderBottom: activa ? '3px solid #FF6600' : '3px solid transparent', backgroundColor: activa ? '#FFFDF7' : 'transparent',
@@ -146,8 +185,9 @@ export function EstadisticasPage() {
               <p>Cargando métricas de ventas...</p>
             </div>
           ) : errorVentas ? (
-            <div style={{ padding: '20px', backgroundColor: '#FEF2F2', color: '#DC2626', borderRadius: '8px' }}>
-              {errorVentas}
+            <div role="alert" className="est-error est-error-card">
+              <strong>No fue posible cargar las ventas.</strong><p>{errorVentas}</p>
+              <button type="button" onClick={() => cargarVentasPeriodo(periodoSeleccionado)}>Volver a intentar</button>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
@@ -191,8 +231,9 @@ export function EstadisticasPage() {
               <p>Cargando desempeño de productos...</p>
             </div>
           ) : errorProductos ? (
-            <div style={{ padding: '20px', backgroundColor: '#FEF2F2', color: '#DC2626', borderRadius: '8px' }}>
-              {errorProductos}
+            <div role="alert" className="est-error est-error-card">
+              <strong>No fue posible cargar los productos.</strong><p>{errorProductos}</p>
+              <button type="button" onClick={cargarDesempenioProductos}>Volver a intentar</button>
             </div>
           ) : datosProductos ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -202,7 +243,7 @@ export function EstadisticasPage() {
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <TrendingUp size={20} color="#FF6600" /> Top 10 Productos Más Vendidos
                 </h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <div className="gest-table-scroll dm-desktop-only" role="region" tabIndex={0} aria-label="Desplazar tabla de productos"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #E5E7EB', textAlign: 'left', color: '#6B7280' }}>
                       <th style={{ padding: '10px 8px' }}>Producto</th>
@@ -219,7 +260,15 @@ export function EstadisticasPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
+                <div className="dm-mobile-list est-mobile-table" aria-label="Productos más vendidos">
+                  {datosProductos.masVendidos.map((p, i) => <MobileDetailCard key={`${p.nombre}-${i}`} indice={i}
+                    titulo={p.nombre} monto={formatCOP.format(Number(p.ingreso_total) || 0)}
+                    subtitulo={`${p.total_unidades} unidades vendidas`}>
+                    <dl className="dm-card__fields"><CampoDetalle etiqueta="Unidades vendidas">{p.total_unidades}</CampoDetalle>
+                      <CampoDetalle etiqueta="Ingreso total">{formatCOP.format(Number(p.ingreso_total) || 0)}</CampoDetalle></dl>
+                  </MobileDetailCard>)}
+                </div>
               </div>
 
               {/* Tabla 2: Ventas por Categoría */}
@@ -227,7 +276,7 @@ export function EstadisticasPage() {
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShoppingBag size={20} color="#FF6600" /> Ventas por Categoría
                 </h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <div className="gest-table-scroll dm-desktop-only" role="region" tabIndex={0} aria-label="Desplazar tabla de productos"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #E5E7EB', textAlign: 'left', color: '#6B7280' }}>
                       <th style={{ padding: '10px 8px' }}>Categoría</th>
@@ -244,7 +293,15 @@ export function EstadisticasPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
+                <div className="dm-mobile-list est-mobile-table" aria-label="Ventas por categorías">
+                  {datosProductos.porCategoria.map((c, i) => <MobileDetailCard key={`${c.categoria}-${i}`} indice={i}
+                    titulo={c.categoria || 'Sin categoría'} monto={formatCOP.format(Number(c.ingreso_total) || 0)}
+                    subtitulo={`${c.total_unidades} unidades`}>
+                    <dl className="dm-card__fields"><CampoDetalle etiqueta="Unidades">{c.total_unidades}</CampoDetalle>
+                      <CampoDetalle etiqueta="Ingresos">{formatCOP.format(Number(c.ingreso_total) || 0)}</CampoDetalle></dl>
+                  </MobileDetailCard>)}
+                </div>
               </div>
 
               {/* Tabla 3: Alertas de Stock */}
@@ -255,7 +312,7 @@ export function EstadisticasPage() {
                 {datosProductos.alertasStock.length === 0 ? (
                   <p style={{ color: '#6B7280' }}>No hay productos con alertas de stock.</p>
                 ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                  <div className="gest-table-scroll dm-desktop-only" role="region" tabIndex={0} aria-label="Desplazar tabla de productos"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid #E5E7EB', textAlign: 'left', color: '#6B7280' }}>
                         <th style={{ padding: '10px 8px' }}>Producto</th>
@@ -282,7 +339,18 @@ export function EstadisticasPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
+                )}
+                {datosProductos.alertasStock.length > 0 && (
+                  <div className="dm-mobile-list est-mobile-table" aria-label="Alertas de existencias">
+                    {datosProductos.alertasStock.map((a,i) => <MobileDetailCard key={`${a.nombre}-${i}`} indice={i}
+                      titulo={a.nombre} estado={<span className="est-mobile-badge">{a.estado}</span>}
+                      subtitulo={`Existencias: ${a.stock_actual}`}>
+                      <dl className="dm-card__fields"><CampoDetalle etiqueta="Existencias actuales">{a.stock_actual}</CampoDetalle>
+                        <CampoDetalle etiqueta="Mínimo configurado">{a.stock_minimo_alerta}</CampoDetalle>
+                        <CampoDetalle etiqueta="Estado">{a.estado}</CampoDetalle></dl>
+                    </MobileDetailCard>)}
+                  </div>
                 )}
               </div>
 
@@ -292,20 +360,37 @@ export function EstadisticasPage() {
       )}
 
       {seccionActiva === 'financiero' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '18px' }}>
-            <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>Ingresos Brutos</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#059669', marginTop: '4px' }}>$0</div>
-          </div>
-        </div>
+        <section aria-label="Resumen financiero" className="est-finance">
+          {cargandoFinanciero ? <p role="status">Cargando información financiera…</p> :
+           errorFinanciero ? <div role="alert" className="est-error est-error-card"><strong>No fue posible cargar el resumen financiero.</strong><p>{errorFinanciero}</p><button type="button" onClick={() => setReintentosFinanciero(v => v + 1)}>Volver a intentar</button></div> : financiero ? <>
+            <div className="est-finance-cards">
+              <div className="est-panel"><span>Ingresos brutos</span><strong>{formatCOP.format(financiero.ingresosBrutos)}</strong></div>
+              <div className="est-panel"><span>Costos estimados</span><strong>{formatCOP.format(financiero.costoProductos)}</strong></div>
+              <div className="est-panel"><span>Utilidad bruta estimada</span><strong>{formatCOP.format(financiero.utilidadEstimada)}</strong></div>
+            </div>
+            <p className="est-hint">{financiero.advertencia}</p>
+            <div className="est-panel est-table-wrap"><h3>Desglose por categoría</h3>
+              {financiero.porCategoria.length ? <><table className="dm-desktop-only"><thead><tr><th>Categoría</th><th>Ingresos</th><th>Costos</th><th>Utilidad estimada</th></tr></thead>
+              <tbody>{financiero.porCategoria.map(c => <tr key={c.categoria}><th scope="row">{c.categoria}</th><td>{formatCOP.format(c.ingresos)}</td><td>{formatCOP.format(c.costos)}</td><td>{formatCOP.format(c.utilidad)}</td></tr>)}</tbody></table>
+                <div className="dm-mobile-list est-mobile-table" aria-label="Balance por categoría">
+                  {financiero.porCategoria.map((c,i) => <MobileDetailCard key={`${c.categoria}-${i}`} indice={i}
+                    titulo={c.categoria} monto={formatCOP.format(c.utilidad)} subtitulo={`Ingresos: ${formatCOP.format(c.ingresos)}`}>
+                    <dl className="dm-card__fields">
+                      <CampoDetalle etiqueta="Ingresos">{formatCOP.format(c.ingresos)}</CampoDetalle>
+                      <CampoDetalle etiqueta="Costos">{formatCOP.format(c.costos)}</CampoDetalle>
+                      <CampoDetalle etiqueta="Utilidad estimada">{formatCOP.format(c.utilidad)}</CampoDetalle>
+                    </dl>
+                  </MobileDetailCard>)}
+                </div></>
+              : <p>No hay ventas en el período seleccionado.</p>}</div>
+          </> : <p>No hay datos disponibles.</p>}
+        </section>
       )}
 
       {seccionActiva === 'graficas' && (
-        <div style={{ backgroundColor: '#FFFDF7', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '36px', textAlign: 'center' }}>
-          <BarChart2 size={48} style={{ color: '#FF6600', margin: '0 auto 12px auto' }} />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1F2937' }}>Visualización de Gráficas Estadísticas</h3>
-          <p style={{ color: '#6B7280', fontSize: '0.9rem' }}>Módulo de análisis visual y gráficos en preparación.</p>
-        </div>
+        <GraficasVentas financiero={financiero} cargando={cargandoFinanciero} error={errorFinanciero}
+          ventasComparadas={ventasComparadas} cargandoComparacion={cargandoComparacion}
+          onReintentar={() => { setSeccionActiva('ventas'); requestAnimationFrame(() => setSeccionActiva('graficas')); }} />
       )}
 
       {seccionActiva === 'caja' && (

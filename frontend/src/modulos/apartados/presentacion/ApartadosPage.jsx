@@ -5,7 +5,8 @@ import {
   Search
 } from 'lucide-react';
 import { ListaApartadosActivos } from './ListaApartadosActivos';
-import { CrearApartadoModal } from './CrearApartadoModal'; // <-- NUEVO IMPORT
+import { CrearApartadoModal } from './CrearApartadoModal';
+import './apartadosResponsive.css';
 
 export function ApartadosPage() {
   const [tabActiva, setTabActiva] = useState('activos');
@@ -18,10 +19,10 @@ export function ApartadosPage() {
   };
 
   return (
-    <div className="apartados-container" style={{ padding: '8px 0' }}>
-      <div className="panel-header" style={{ marginBottom: '20px' }}>
+    <div className="apartados-container apartados-page">
+      <div className="panel-header apartados-page-header">
         <div>
-          <h1 className="header-title" style={{ fontSize: '1.6rem', color: '#1F2937' }}>
+          <h1 className="header-title">
             Don Mati — Apartados
           </h1>
           <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '4px' }}>
@@ -30,8 +31,11 @@ export function ApartadosPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #E5E7EB', marginBottom: '20px' }}>
+      <div className="apartados-tabs" role="tablist" aria-label="Secciones de apartados">
         <button
+          type="button"
+          role="tab"
+          aria-selected={tabActiva === 'activos'}
           onClick={() => setTabActiva('activos')}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.95rem', fontWeight: 600,
@@ -45,6 +49,9 @@ export function ApartadosPage() {
         </button>
 
         <button
+          type="button"
+          role="tab"
+          aria-selected={tabActiva === 'nuevo'}
           onClick={() => setTabActiva('nuevo')}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.95rem', fontWeight: 600,
@@ -60,11 +67,12 @@ export function ApartadosPage() {
 
       {tabActiva === 'activos' && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{ position: 'relative', flex: 1, maxWidth: '420px' }}>
+          <div className="apartados-search-row">
+            <div className="apartados-search-field">
               <Search size={18} style={{ position: 'absolute', left: '12px', top: '10px', color: '#9CA3AF' }} />
               <input
-                type="text"
+                type="search"
+                aria-label="Buscar apartado por cliente o código"
                 placeholder="Buscar por cliente o código AP-XXXX..."
                 value={filtroBusqueda}
                 onChange={(e) => setFiltroBusqueda(e.target.value)}

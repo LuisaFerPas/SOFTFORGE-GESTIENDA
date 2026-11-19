@@ -1,0 +1,10 @@
+.est-mobile-badge { display:inline-flex; border:1px solid #ebc3a7; background:#fff3e7; border-radius:99px; padding:5px 10px; color:#8a2f08; font-size:.78rem; font-weight:750; }
+.gest-route-loading { min-height:65vh; padding:40px 24px; display:grid; place-items:center; background:#fffaf5; color:#743a19; font-size:1.1rem; font-weight:700; }
+@media(max-width:850px) {
+ .est-page {min-width:0;width:100%;}
+ .est-page .est-mobile-table { padding:12px 0 0; }
+ .est-page .est-table-wrap { overflow:visible; }
+ .est-page .est-panel {min-width:0; max-width:100%; padding:clamp(12px,3.5vw,18px);}
+ .est-page .est-finance-cards { min-width:0; }
+}
+@media(prefers-reduced-motion:reduce){ .gest-route-loading {animation:none;} }

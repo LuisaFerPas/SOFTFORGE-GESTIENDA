@@ -9,6 +9,10 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState('');
+  const [sesionExpirada, setSesionExpirada] = useState(() => {
+    try { return sessionStorage.getItem('gestienda_sesion_expirada') === '1'; }
+    catch { return false; }
+  });
   const [loading, setLoading] = useState(false);
   const [infoRed, setInfoRed] = useState(null);
   const { login } = useAuth();
@@ -33,6 +37,8 @@ export function LoginPage() {
     try {
       const data = await loginApi(username, password);
       login(data.data.token, data.data.user);
+      setSesionExpirada(false);
+      try { sessionStorage.removeItem('gestienda_sesion_expirada'); } catch { /* noop */ }
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');
@@ -81,6 +87,11 @@ export function LoginPage() {
           </p>
         </div>
 
+        {sesionExpirada && !error && (
+          <div role="status" style={{background:'#fff3dc', color:'#733f12', padding:'12px 14px', border:'1px solid #f1bf78', borderRadius:12, marginBottom:18, fontSize:'.9rem', lineHeight:1.4}}>
+            Tu sesión finalizó. Inicia sesión nuevamente para seguir trabajando.
+          </div>
+        )}
         {error && (
           <div style={{
             backgroundColor: '#FEE2E2',

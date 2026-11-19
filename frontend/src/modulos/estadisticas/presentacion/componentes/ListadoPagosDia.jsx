@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { consultarPagosDelDia } from '../../servicios/estadisticasService.js';
 import { formatCOP } from '../../../inventario/utilidades/formatoMoneda.js';
 import { Receipt, LoaderCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { MobileDetailCard, CampoDetalle } from '../../../../compartido/componentes/MobileDetailCard';
+import './pagosMobile.css';
 
 /**
  * Listado de pagos individuales del día (HU-0801).
@@ -91,7 +93,7 @@ export function ListadoPagosDia() {
 
       {/* HU-0801.3: Tabla de Pagos del Día */}
       {!cargando && !error && pagos.length > 0 && (
-        <div style={estilos.contenedorTabla}>
+        <div style={estilos.contenedorTabla} className="dm-desktop-only">
           <table style={estilos.tabla}>
             <thead>
               <tr style={estilos.filaEncabezado}>
@@ -133,6 +135,28 @@ export function ListadoPagosDia() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+      {!cargando && !error && pagos.length > 0 && (
+        <div className="dm-mobile-list dm-payments-mobile" aria-label="Pagos del día en tarjetas">
+          {pagos.map((pago, index) => {
+            const esVenta = pago.tipo === 'VENTA';
+            return <MobileDetailCard
+              key={`${pago.tipo}-${pago.id}-${index}`}
+              indice={index}
+              titulo={esVenta ? `Venta #${pago.referenciaId}` : `Abono apartado #${pago.referenciaId}`}
+              subtitulo={pago.hora || formatearHora(pago.fechaHora)}
+              monto={formatCOP.format(Number(pago.monto) || 0)}
+              estado={<span className={esVenta ? 'dm-payment-type dm-payment-type--sale' : 'dm-payment-type'}>{esVenta ? 'Venta' : 'Abono'}</span>}
+            >
+              <dl className="dm-card__fields">
+                <CampoDetalle etiqueta="Medio de pago">{formatearMedioPago(pago.medioPago)}</CampoDetalle>
+                <CampoDetalle etiqueta="Hora">{pago.hora || formatearHora(pago.fechaHora)}</CampoDetalle>
+                <CampoDetalle etiqueta="Operación">{esVenta ? 'Venta registrada' : 'Abono de apartado'}</CampoDetalle>
+                <CampoDetalle etiqueta="Monto">{formatCOP.format(Number(pago.monto) || 0)}</CampoDetalle>
+              </dl>
+            </MobileDetailCard>;
+          })}
         </div>
       )}
     </div>

@@ -11,9 +11,9 @@ export function PanelStockBajo({ alertas = [], cargando = false, error = '' }) {
     <div className="panel-list">
       {cargando ? <p>Consultando inventario...</p> : error ? <p role="alert">No se pudieron cargar las alertas.</p> :
       alertas.length === 0 ? <p>No hay alertas pendientes.</p> :
-      alertas.slice(0, 5).map(p => <div className="list-item" key={p.id}>
-        <div><div className="item-name">{p.nombre}</div><div className="item-sub">{p.codigoInterno}</div></div>
-        <div style={{textAlign:'right'}}><BadgeEstadoStock producto={p} />
+      alertas.slice(0, 5).map(p => <div className="list-item dm-home-list-item" key={p.id}>
+        <div className="dm-home-list-item__main"><div className="item-name">{p.nombre}</div><div className="item-sub">{p.codigoInterno}</div></div>
+        <div className="dm-home-list-item__aside"><BadgeEstadoStock producto={p} />
           <div className="stock-min-label">Stock: {p.stockActual} · Mín: {p.stockMinimoAlerta}</div>
         </div>
       </div>)}

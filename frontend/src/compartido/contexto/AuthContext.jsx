@@ -29,6 +29,16 @@ export function AuthProvider({ children }) {
     }
   }, [token]);
 
+  // Mantener React sincronizado si el servidor rechaza un JWT expirado.
+  useEffect(() => {
+    const cerrarPorExpiracion = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('gestienda:sesion-expirada', cerrarPorExpiracion);
+    return () => window.removeEventListener('gestienda:sesion-expirada', cerrarPorExpiracion);
+  }, []);
+
   const login = (authToken, userData) => {
     setToken(authToken);
     setUser(userData);

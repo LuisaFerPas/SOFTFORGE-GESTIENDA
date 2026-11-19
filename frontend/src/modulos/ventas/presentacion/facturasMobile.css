@@ -1,0 +1,21 @@
+/* Vista de facturas sin desplazamiento horizontal en móvil. */
+@media(max-width:850px) {
+ .fh-page {width:100%;min-width:0;max-width:100%;}
+ .fh-card {max-width:100%;min-width:0;}
+ .fh-mobile-list {padding:14px;}
+ .fh-toolbar {align-items:stretch;gap:10px;padding:14px;}
+ .fh-search,.fh-filter {flex:1 1 100%;width:100%;min-width:0;}
+ .fh-filter select {width:100%;min-width:0;}
+ .fh-pagination {flex-direction:column;align-items:stretch;text-align:center;}
+ .fh-pagination > div {justify-content:center;}
+ .fh-mobile-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+ .fh-mobile-actions > * {min-width:0;max-width:100%;}
+ .fh-mobile-actions button {width:100%;min-height:42px;white-space:normal;word-break:normal;}
+ .fh-mobile-actions .pos-reimpresion {min-width:0;}
+ .fh-summary {padding:14px;}
+}
+@media(max-width:420px) {
+ .fh-mobile-actions {grid-template-columns:1fr;}
+ .fh-header {gap:10px;}
+ .fh-refresh {min-height:42px;}
+}

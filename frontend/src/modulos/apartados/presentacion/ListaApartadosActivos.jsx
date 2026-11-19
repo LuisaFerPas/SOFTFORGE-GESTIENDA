@@ -102,12 +102,12 @@ export function ListaApartadosActivos({ filtro = '', version = 0, onCancelar }) 
   }
 
   if (visibles.length === 0) {
-    return <p style={estilos.mensaje}>No hay apartados activos.</p>;
+    return <p role="status" style={estilos.mensaje}>{termino ? 'No encontramos apartados que coincidan con tu búsqueda.' : 'Todavía no hay apartados activos. Puedes crear uno desde la pestaña Nuevo apartado.'}</p>;
   }
 
   return (
     <>
-      <div style={estilos.lista}>
+      <div className="apartados-list">
         {visibles.map((apartado) => (
           <TarjetaApartado
             key={apartado.id}

@@ -1,25 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle, BadgeCheck, FileText, Info, LoaderCircle, Printer,
   UserRound, X
 } from 'lucide-react';
-import { generarFactura, generarEImprimirFacturaApi } from '../servicios/ventasService';
+import { generarFactura } from '../servicios/ventasService';
 
 /**
  * SD-121 / HU-0401.3 — después de registrar una venta, decidir si emitir factura.
  * Nunca genera al abrir. Solo ejecuta POST /ventas/facturas al pulsar «Sí, imprimir».
- * HU-0402.4: Permite enviar a la impresora tras generar la factura.
+ * La impresión reutiliza el comprobante desde Historial; no crea duplicados.
  */
 export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerrar, onGenerada }) {
+  const navigate = useNavigate();
   const [nombreCliente, setNombreCliente] = useState('');
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [factura, setFactura] = useState(facturaInicial || null);
   
-  // NUEVOS ESTADOS PARA LA IMPRESIÓN
-  const [imprimiendo, setImprimiendo] = useState(false);
-  const [impreso, setImpreso] = useState(false);
 
   const enCursoRef = useRef(false);
   const contenedorRef = useRef(null);
@@ -28,7 +27,7 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
   const cerrarRef = useRef(onCerrar);
   const procesandoRef = useRef(false);
   cerrarRef.current = onCerrar;
-  procesandoRef.current = procesando || imprimiendo;
+  procesandoRef.current = procesando;
 
   useEffect(() => {
     if (!abierto) return;
@@ -36,8 +35,8 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
     setError('');
     setFactura(facturaInicial || null);
     setProcesando(false);
-    setImprimiendo(false);
-    setImpreso(false);
+
+
     enCursoRef.current = false;
   }, [abierto, ventaId, facturaInicial]);
 
@@ -116,26 +115,17 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
     }
   }
 
-  // NUEVA FUNCIÓN: Enviar a la impresora (HU-0402.4)
-  async function handleImprimir() {
-    if (imprimiendo || impreso) return;
-    
-    setImprimiendo(true);
+  // Reutiliza la factura emitida. Nunca intenta crear una segunda factura al imprimir.
+  // El historial presenta el ticket de 80 mm y abre el cuadro de impresión de Windows.
+  function handleImprimir() {
+    if (!factura?.consecutivo || procesando) return;
     setError('');
-    
-    try {
-      await generarEImprimirFacturaApi(Number(ventaId), factura.nombreCliente || 'Consumidor Final');
-      setImpreso(true);
-    } catch (err) {
-      const mensaje = err?.message || 'No se pudo enviar a la impresora.';
-      setError(mensaje);
-    } finally {
-      setImprimiendo(false);
-    }
+    onCerrar?.();
+    navigate('/ventas/facturas', { state: { abrirFactura: factura.consecutivo } });
   }
 
   function omitir() {
-    if (enCursoRef.current || procesando || imprimiendo) return;
+    if (enCursoRef.current || procesando) return;
     onCerrar?.();
   }
 
@@ -145,7 +135,7 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
     <div className="pos-modal-backdrop">
       <section ref={contenedorRef} className="pos-modal pos-factura-modal" role="dialog"
         aria-modal="true" aria-labelledby="pos-factura-title"
-        aria-describedby="pos-factura-description" aria-busy={procesando || imprimiendo}>
+        aria-describedby="pos-factura-description" aria-busy={procesando}>
         <header className="pos-modal-header">
           <div className="pos-modal-heading">
             <span className="pos-modal-icon"><FileText size={23} /></span>
@@ -162,7 +152,7 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
             </div>
           </div>
           <button type="button" className="pos-modal-close" onClick={omitir}
-            disabled={procesando || imprimiendo} aria-label="Cerrar ventana de factura"><X size={20}/></button>
+            disabled={procesando} aria-label="Cerrar ventana de factura"><X size={20}/></button>
         </header>
 
         <div className="pos-modal-content">
@@ -174,12 +164,8 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
                 <p>Cliente: {factura.nombreCliente || 'Consumidor Final'}</p>
                 <p>Estado: registrada en Gestienda.</p>
                 
-                {/* NUEVO: Mensaje de éxito de impresión */}
-                {impreso && (
-                  <p style={{ color: '#16A34A', fontWeight: 'bold', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Printer size={18} /> Ticket enviado a la impresora exitosamente.
-                  </p>
-                )}
+
+
               </div>
             </div>
           ) : (
@@ -212,7 +198,7 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
           <div className="pos-invoice-info pos-invoice-disclaimer">
             <Info size={18} aria-hidden="true" />
             <p><strong>Importante:</strong> {factura
-              ? 'La factura se guardó en el sistema. Puedes enviarla a la impresora usando el botón de abajo.'
+              ? 'La factura está registrada. El botón abrirá su vista previa para imprimir con Windows, sin duplicarla.'
               : '«Sí, generar» guardará la factura. Después podrás imprimirla.'}</p>
           </div>
         </div>
@@ -222,24 +208,14 @@ export function PreguntaFacturaDialog({ abierto, ventaId, facturaInicial, onCerr
             // NUEVOS BOTONES CUANDO LA FACTURA YA FUE GENERADA
             <>
               <button ref={terminarRef} type="button" className="pos-modal-cancel"
-                onClick={omitir} disabled={imprimiendo}>
-                {impreso ? 'Cerrar' : 'No imprimir (Listo)'}
+                onClick={omitir} disabled={procesando}>
+                No imprimir (Listo)
               </button>
               
-              {!impreso ? (
-                <button type="button" className="pos-modal-submit"
-                  onClick={handleImprimir} disabled={imprimiendo}>
-                  {imprimiendo 
-                    ? <><LoaderCircle size={18} className="pos-spin" /> Imprimiendo...</>
-                    : <><Printer size={18}/> Imprimir Ticket</>
-                  }
-                </button>
-              ) : (
-                <button type="button" className="pos-modal-submit"
-                  onClick={omitir}>
-                  <BadgeCheck size={18} /> Entendido
-                </button>
-              )}
+              <button type="button" className="pos-modal-submit"
+                onClick={handleImprimir} disabled={procesando}>
+                <Printer size={18}/> Ver ticket e imprimir
+              </button>
             </>
           ) : (
             // BOTONES ORIGINALES ANTES DE GENERAR

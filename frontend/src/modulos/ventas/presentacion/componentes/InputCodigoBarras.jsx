@@ -9,6 +9,7 @@ export function InputCodigoBarras({ onBuscar, deshabilitado }) {
   const [codigo, setCodigo] = useState('');
   const [errorLocal, setErrorLocal] = useState('');
   const inputRef = useRef(null);
+  const procesando = useRef(false);
 
   // Autofoco al cargar la vista
   useEffect(() => {
@@ -22,7 +23,8 @@ export function InputCodigoBarras({ onBuscar, deshabilitado }) {
       e.preventDefault();
       const codigoLimpio = codigo.trim();
       
-      if (!codigoLimpio) return;
+      if (!codigoLimpio || procesando.current) return;
+      procesando.current = true;
 
       setErrorLocal('');
       
@@ -34,6 +36,7 @@ export function InputCodigoBarras({ onBuscar, deshabilitado }) {
         // HU-0301.5: Mostrar alerta sin limpiar el campo
         setErrorLocal(error.message || 'Producto no encontrado');
       } finally {
+        procesando.current = false;
         // Devolver el foco al input para el siguiente escaneo
         setTimeout(() => {
           inputRef.current?.focus();
@@ -55,7 +58,10 @@ export function InputCodigoBarras({ onBuscar, deshabilitado }) {
           value={codigo}
           onChange={(e) => setCodigo(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Escanear código de barras aquí..."
+          placeholder="Escanea y pulsa Enter (o escribe el código)"
+          aria-label="Código de barras: escanea o escribe y pulsa Enter"
+          autoComplete="off"
+          inputMode="text"
           disabled={deshabilitado}
           style={{
             width: '100%',
@@ -69,6 +75,7 @@ export function InputCodigoBarras({ onBuscar, deshabilitado }) {
           }}
         />
       </div>
+      <span style={{ fontSize: '0.76rem', color: '#604739' }}>Compatible con lectores USB configurados como teclado. Enfoca este campo para escanear.</span>
       {errorLocal && (
         <span style={{ color: '#DC2626', fontSize: '0.85rem', fontWeight: 'bold' }}>
           {errorLocal}

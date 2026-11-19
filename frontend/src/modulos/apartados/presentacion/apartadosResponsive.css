@@ -1,0 +1,42 @@
+/* Apartados: jerarquía, tarjetas flexibles y controles de uso táctil. */
+.apartados-page { width:100%; min-width:0; max-width:1500px; margin:0 auto; padding:4px 0 24px; }
+.apartados-page-header { margin-bottom:18px; align-items:flex-start; }
+.apartados-page-header .header-title { color:#2b1810!important; font-size:clamp(1.35rem,2.4vw,1.85rem)!important; }
+.apartados-page-header p { line-height:1.5; color:#685247!important; }
+.apartados-tabs { display:flex; align-items:stretch; gap:8px; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; border-bottom:2px solid #ead4c2; margin-bottom:18px; -webkit-overflow-scrolling:touch; }
+.apartados-tabs button { flex:0 0 auto; min-height:48px; white-space:nowrap; }
+.apartados-tabs button[aria-selected="true"] { background:#fff2e8!important; border-radius:10px 10px 0 0; }
+.apartados-tabs button:focus-visible { outline:3px solid #155d94; outline-offset:-3px; }
+.apartados-search-row { display:flex; align-items:center; gap:12px; margin-bottom:18px; min-width:0; }
+.apartados-search-field { position:relative; width:100%; max-width:480px; min-width:0; }
+.apartados-search-field input { width:100%; min-width:0; min-height:46px; background:#fff!important; border:1px solid #cdb9aa!important; border-radius:10px!important; font-size:1rem!important; }
+.apartados-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr)); align-items:start; gap:16px; min-width:0; }
+.apartado-card { min-width:0; width:100%; max-width:100%; border:1px solid #ead4c2!important; border-radius:15px!important; background:#fff!important; box-shadow:0 3px 15px rgba(80,33,12,.05)!important; overflow-wrap:anywhere; }
+.apartado-card button { min-height:43px; }
+.apartado-card li { min-width:0; overflow-wrap:anywhere; }
+.apartado-card li > :first-child { min-width:0; overflow-wrap:anywhere; }
+.apartado-card li > :last-child { flex-shrink:0; }
+.apartados-form-panel { width:100%; min-width:0; box-shadow:0 3px 15px rgba(80,33,12,.05); }
+.apartados-form-panel form { min-width:0; }
+.apartados-form-panel :is(input,select,textarea) { min-height:43px; max-width:100%; }
+.apartados-form-panel .apartados-table-scroll { max-width:100%; min-width:0; margin:8px 0 12px; }
+.apartados-form-panel .apartados-table-scroll table { min-width:620px; }
+.apartados-form-panel .apartados-table-scroll th,.apartados-form-panel .apartados-table-scroll td { padding:11px 9px!important; }
+.apartados-form-panel button[type="submit"] { min-height:48px; }
+@media(max-width:620px) {
+ .apartados-page-header { margin-bottom:12px; }
+ .apartados-tabs { width:100%; gap:3px; }
+ .apartados-tabs button { flex:1 1 50%; justify-content:center; padding:11px 10px!important; font-size:.88rem!important; }
+ .apartados-search-field { max-width:100%; }
+ .apartados-list { grid-template-columns:1fr; gap:12px; }
+ .apartado-card { padding:14px!important; }
+ .apartado-card footer { justify-content:stretch!important; }
+ .apartado-card footer button { flex:1 1 140px; }
+ .apartados-form-panel { padding:15px!important; }
+ .apartados-form-panel .apartados-payment-grid { grid-template-columns:1fr!important; gap:10px!important; padding:14px!important; }
+ .apartados-form-panel .apartados-payment-grid > div:last-child { align-items:flex-start!important; }
+}
+@media(max-width:380px) {
+ .apartados-tabs button { font-size:.8rem!important; gap:5px!important; }
+ .apartado-card footer button { flex-basis:100%; }
+}

@@ -19,7 +19,7 @@ export function TarjetaApartado({ apartado, onRegistrarAbono, onCancelar }) {
   const abonos = construirHistorial(apartado);
 
   return (
-    <article style={estilos.tarjeta}>
+    <article className="apartado-card" style={estilos.tarjeta}>
       <header style={estilos.encabezado}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={estilos.insignia}>ACTIVO</span>

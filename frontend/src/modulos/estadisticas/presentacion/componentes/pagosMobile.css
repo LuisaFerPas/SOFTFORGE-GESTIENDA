@@ -1,0 +1,7 @@
+.dm-payments-mobile { padding:0; }
+.dm-payment-type {display:inline-flex;border-radius:20px;background:#fff0cd;color:#75420a;padding:4px 10px;font-weight:800;font-size:.78rem;}
+.dm-payment-type--sale {background:#e5f1ff;color:#1b537d;}
+@media(max-width:850px) {
+ .dm-payments-mobile {margin-top:10px;}
+ .dm-payments-mobile .dm-card__amount {font-size:clamp(.9rem,4.1vw,1.05rem);}
+}

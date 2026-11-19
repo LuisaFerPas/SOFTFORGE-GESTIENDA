@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertCircle, ArrowLeft, ArrowRight, CalendarDays, Check, CheckCircle2, CircleHelp,
   FileSearch, FileText, LoaderCircle, Printer, ReceiptText, RefreshCw,
@@ -11,6 +12,8 @@ import { ReimprimirFacturaButton } from './componentes/ReimprimirFacturaButton';
 import { EditarFacturaButton } from './componentes/EditarFacturaButton';
 import { ReutilizarVentaButton } from './componentes/ReutilizarVentaButton';
 import './HistorialFacturasPage.css';
+import { MobileDetailCard, CampoDetalle } from '../../../compartido/componentes/MobileDetailCard';
+import './facturasMobile.css';
 
 const dinero = (valor) => new Intl.NumberFormat('es-CO', {
   style: 'currency', currency: 'COP', maximumFractionDigits: 0
@@ -110,6 +113,8 @@ function VistaFactura({ factura, onCerrar }) {
 }
 
 export function HistorialFacturasPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [busqueda, setBusqueda] = useState('');
   const [consulta, setConsulta] = useState('');
@@ -170,6 +175,14 @@ export function HistorialFacturasPage() {
     }
   }, []);
 
+  // Venimos de una venta recién facturada: abrir el comprobante ya guardado.
+  useEffect(() => {
+    const numero = location.state?.abrirFactura;
+    if (typeof numero !== 'string' || !/^F-\d{4,}$/i.test(numero)) return;
+    abrirDetalle(numero);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, abrirDetalle, navigate]);
+
   const cerrarDetalle = useCallback(() => setDetalle(null), []);
 
   function facturaEditada(datos) {
@@ -217,7 +230,7 @@ export function HistorialFacturasPage() {
         {!error && cargando && <div className="fh-state" role="status"><LoaderCircle size={26} className="fh-rotate"/><b>Consultando facturas…</b></div>}
         {!error && !cargando && !facturas.length && <div className="fh-state"><FileSearch size={38}/><strong>No encontramos facturas</strong><p>Prueba otros filtros o registra una factura desde el punto de venta.</p></div>}
         {!error && !cargando && facturas.length > 0 && <>
-          <div className="fh-table-wrap">
+          <div className="fh-table-wrap dm-desktop-only">
             <table className="fh-table">
               <thead><tr><th>Factura</th><th>Cliente</th><th>Vendedor</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
               <tbody>{facturas.map(f => (
@@ -237,6 +250,30 @@ export function HistorialFacturasPage() {
                 </tr>
               ))}</tbody>
             </table>
+          </div>
+          <div className="dm-mobile-list fh-mobile-list" aria-label="Facturas en formato móvil">
+            {facturas.map((f, i) => (
+              <MobileDetailCard
+                key={f.id ?? f.consecutivo}
+                indice={i}
+                titulo={f.consecutivo}
+                subtitulo={f.nombreCliente || 'Consumidor Final'}
+                monto={dinero(f.total)}
+                estado={<span className={`fh-status ${f.estado === 'EMITIDA' ? 'fh-status--ok' : 'fh-status--cancel'}`}>{f.estado === 'EMITIDA' ? <Check size={13}/> : <X size={13}/>} {f.estado}</span>}
+              >
+                <dl className="dm-card__fields">
+                  <CampoDetalle etiqueta="Venta">#{f.ventaId}</CampoDetalle>
+                  <CampoDetalle etiqueta="Vendedor">{f.vendedor || 'No disponible'}</CampoDetalle>
+                  <CampoDetalle etiqueta="Fecha">{fechaLegible(f.fechaEmision)}</CampoDetalle>
+                </dl>
+                <div className="dm-card__actions fh-mobile-actions">
+                  <button type="button" className="fh-view" disabled={cargandoDetalle} onClick={() => abrirDetalle(f.consecutivo)}><FileText size={16}/> Ver factura</button>
+                  <ReimprimirFacturaButton factura={f} onPreparada={abrirDetalle}/>
+                  {isAdmin && <EditarFacturaButton factura={f} onEditada={facturaEditada}/>}
+                  {isAdmin && <ReutilizarVentaButton factura={f}/>}
+                </div>
+              </MobileDetailCard>
+            ))}
           </div>
           <div className="fh-pagination">
             <span>Página {paginacion.pagina} de {paginacion.totalPaginas} · {paginacion.total} facturas</span>

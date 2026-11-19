@@ -11,8 +11,8 @@ export function PanelVentasRecientes() {
       </div>
 
       <div className="panel-list">
-        <div className="list-item">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="list-item dm-home-list-item dm-home-list-item--sale">
+          <div className="dm-home-sale-main">
             <span className="sale-time">10:42</span>
             <div>
               <div className="item-name">Shampoo Sedal rizos x2</div>
@@ -22,8 +22,8 @@ export function PanelVentasRecientes() {
           <div className="sale-price">$18.600</div>
         </div>
 
-        <div className="list-item">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="list-item dm-home-list-item dm-home-list-item--sale">
+          <div className="dm-home-sale-main">
             <span className="sale-time">10:28</span>
             <div>
               <div className="item-name">Juguete carros pista loop</div>
@@ -33,8 +33,8 @@ export function PanelVentasRecientes() {
           <div className="sale-price">$45.000</div>
         </div>
 
-        <div className="list-item">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="list-item dm-home-list-item dm-home-list-item--sale">
+          <div className="dm-home-sale-main">
             <span className="sale-time">09:55</span>
             <div>
               <div className="item-name">Maquillaje sombras x12</div>
@@ -44,8 +44,8 @@ export function PanelVentasRecientes() {
           <div className="sale-price">$32.000</div>
         </div>
 
-        <div className="list-item">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="list-item dm-home-list-item dm-home-list-item--sale">
+          <div className="dm-home-sale-main">
             <span className="sale-time">09:31</span>
             <div>
               <div className="item-name">Velas piñata x20 unid.</div>
@@ -55,8 +55,8 @@ export function PanelVentasRecientes() {
           <div className="sale-price">$12.000</div>
         </div>
 
-        <div className="list-item">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="list-item dm-home-list-item dm-home-list-item--sale">
+          <div className="dm-home-sale-main">
             <span className="sale-time">09:10</span>
             <div>
               <div className="item-name">Crema Pond's + Colgate</div>

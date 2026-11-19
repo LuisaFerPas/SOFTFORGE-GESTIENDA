@@ -1,0 +1,17 @@
+.dm-users {max-width:100%;min-width:0; padding:18px; background:#fffdf9; border:1px solid #ebd9ca; border-radius:16px;}
+.dm-users__heading {display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.dm-users__heading h3 {margin:0;color:#332115;font-size:1.1rem;line-height:1.32;font-weight:800;overflow-wrap:break-word;}
+.dm-users__table-wrap {width:100%;}
+.dm-users__table {width:100%;border-collapse:collapse;text-align:left;font-size:.91rem;table-layout:auto;}
+.dm-users__table th {background:#fff2e8;padding:13px 11px;color:#653b23;font-size:.82rem;font-weight:800;text-transform:none;}
+.dm-users__table td {padding:14px 11px;border-bottom:1px solid #f0e4db;color:#55443a;vertical-align:middle;line-height:1.35;word-break:normal;overflow-wrap:break-word;}
+.dm-users__table td:first-child {color:#322015;}
+.dm-user-badge {display:inline-flex;gap:5px;align-items:center;justify-content:center;border-radius:30px;padding:6px 10px;white-space:nowrap;font-weight:750;font-size:.78rem;line-height:1.2;}
+.dm-user-badge--admin {background:#fff0c9;color:#81400b;}
+.dm-user-badge--seller {background:#e2efff;color:#174b87;}
+.dm-user-state {display:inline-flex;border-radius:7px;background:#e1f7e9;color:#14603a;padding:5px 8px;font-size:.79rem;font-weight:800;white-space:nowrap;}
+@media(max-width:850px) {
+ .dm-users {padding:14px 10px;}
+ .dm-users__heading {padding:0 6px;margin-bottom:10px;}
+ .dm-users__cards {padding:0;}
+}

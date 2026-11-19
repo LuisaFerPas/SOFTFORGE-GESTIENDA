@@ -1,0 +1,13 @@
+/* Animación discreta del menú existente; no se cambia la navegación. */
+.gest-mobile-header button { transition:background-color .18s ease,transform .18s ease,border-color .18s ease; }
+.gest-mobile-header button:hover {background:#8b3c15;border-color:#d69269;}
+.gest-mobile-header button:active {transform:scale(.96);}
+@media(max-width:900px) {
+ .gest-shell .gest-sidebar-holder {transition:transform .3s cubic-bezier(.21,.78,.24,1), visibility .3s ease;}
+ .gest-shell .gest-menu-overlay {transition:opacity .25s ease, visibility .25s ease;}
+ .gest-shell .gest-sidebar-holder .sidebar-nav a {transition:background-color .16s ease, transform .16s ease;}
+ .gest-shell .gest-sidebar-holder .sidebar-nav a:active {transform:scale(.985);}
+}
+@media(prefers-reduced-motion:reduce) {
+ .gest-mobile-header button,.gest-shell .gest-sidebar-holder,.gest-shell .gest-menu-overlay,.gest-shell .gest-sidebar-holder .sidebar-nav a {transition:none!important;}
+}

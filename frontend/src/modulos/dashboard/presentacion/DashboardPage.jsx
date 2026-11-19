@@ -6,6 +6,7 @@ import { TarjetasKPI } from './TarjetasKPI';
 import { PanelStockBajo } from './PanelStockBajo';
 import { PanelVentasRecientes } from './PanelVentasRecientes';
 import { useAlertasStock } from '../hooks/useAlertasStock';
+import './dashboardResponsiveCards.css';
 
 export function DashboardPage() {
   const { user, isAdmin } = useAuth();
@@ -56,7 +57,7 @@ export function DashboardPage() {
       <TarjetasKPI alertas={alertas} alertasCargando={cargando} alertasError={error} />
 
       {/* Paneles Inferiores: Stock bajo (solo admin) y Ventas recientes */}
-      <section className="bottom-grid" style={{ gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr' }}>
+      <section className={`bottom-grid dm-home-panels ${isAdmin ? 'dm-home-panels--admin' : ''}`}>
         {isAdmin && <PanelStockBajo alertas={alertas} cargando={cargando} error={error} />}
         <PanelVentasRecientes />
       </section>
