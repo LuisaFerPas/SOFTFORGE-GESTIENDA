@@ -6,6 +6,18 @@ export class ReporteController {
     this.estadisticasService = estadisticasService;
   }
 
+  /** HU-0903.1: Endpoint solo para administradores (middleware de rutas). */
+  async verResumenFinanciero(req, res) {
+    try {
+      const data = await this.estadisticasService.consultarResumenFinanciero(req.query.periodo || 'MES');
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      if (error instanceof RangeError) return res.status(400).json({ success: false, message: error.message });
+      console.error('Error en ReporteController.verResumenFinanciero:', error);
+      return res.status(500).json({ success: false, message: 'No se pudo obtener el resumen financiero.' });
+    }
+  }
+
   async verResumen(req, res) { /* TODO */ }
   async verGanancias(req, res) { /* TODO */ }
   async verPorCategoria(req, res) { /* TODO */ }

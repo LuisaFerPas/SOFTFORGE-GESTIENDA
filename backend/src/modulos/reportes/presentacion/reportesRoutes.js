@@ -17,5 +17,7 @@ export function crearReportesRoutes(reporteController) {
   // HU-0902.1: Nueva ruta para desempeño de productos
   router.get('/productos', (req, res) => reporteController.verDesempenioProductos(req, res));
 
+  router.get('/financiero', (req, res) => reporteController.verResumenFinanciero(req, res));
+
   return router;
 }

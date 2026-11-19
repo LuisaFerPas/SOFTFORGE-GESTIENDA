@@ -14,7 +14,7 @@ export class ApartadoService {
     try {
       const { clienteNombre, productos, abonoInicial } = datosApartado;
 
-      if (!clienteNombre || clienteNombre.trim() === '') {
+      if (typeof clienteNombre !== 'string' || !clienteNombre.trim() || clienteNombre.trim().length > 150) {
         return Result.fail('El nombre del cliente es obligatorio.');
       }
       if (!Array.isArray(productos) || productos.length === 0) {
@@ -22,19 +22,32 @@ export class ApartadoService {
       }
       
       const abono = Number(abonoInicial);
-      if (isNaN(abono) || abono <= 0) {
+      if (!Number.isFinite(abono) || abono <= 0) {
         return Result.fail('El abono inicial debe ser un número mayor a cero.');
       }
 
       const productosValidados = [];
+      const ids = new Set();
       for (const item of productos) {
+        if (!Number.isSafeInteger(item?.productoId) || item.productoId <= 0 ||
+            !Number.isSafeInteger(item?.cantidad) || item.cantidad <= 0) {
+          return Result.fail('Cada producto requiere un ID y una cantidad entera positiva.');
+        }
+        if (ids.has(item.productoId)) {
+          return Result.fail('No repitas el mismo producto. Ajusta su cantidad en el carrito.');
+        }
+        ids.add(item.productoId);
         const prod = await this.productoRepository.buscarPorId(item.productoId);
         
         if (!prod) {
           return Result.fail(`El producto con ID ${item.productoId} no existe.`);
         }
         
-        if (prod.stockActual < item.cantidad) {
+        if (prod.activo === false || prod.activo === 0 ||
+            !Number.isFinite(Number(prod.precioVentaUnitario)) || Number(prod.precioVentaUnitario) <= 0) {
+          return Result.fail(`El producto "${prod.nombre}" no está activo o no tiene precio válido.`);
+        }
+        if (Number(prod.stockActual) < item.cantidad) {
           return Result.fail(`Producto no disponible: "${prod.nombre}". Stock actual: ${prod.stockActual}, solicitado: ${item.cantidad}.`);
         }
         
@@ -58,7 +71,7 @@ export class ApartadoService {
       if (this.apartadoRepository && typeof this.apartadoRepository.guardar === 'function') {
         const idInsertado = await this.apartadoRepository.guardar({
           codigo: null,
-          clienteNombre,
+          clienteNombre: clienteNombre.trim(),
           clienteTelefono: datosApartado.clienteTelefono || null,
           usuarioId: datosApartado.usuarioId || 1,
           totalProductos: total,
@@ -67,19 +80,11 @@ export class ApartadoService {
           estado: 'ACTIVO',
           fechaCreacion: new Date().toISOString(),
           productos: productosValidados
-        });
+        }, { reservarStock: true });
         idGenerado = idInsertado;
         codigoGenerado = 'AP-' + String(idInsertado).padStart(4, '0');
 
-        // Descontar stock de productos reservados en inventario
-        if (this.apartadoRepository.db) {
-          const stmtStock = this.apartadoRepository.db.prepare(
-            'UPDATE products SET stock_actual = stock_actual - ? WHERE id = ?'
-          );
-          for (const item of productosValidados) {
-            stmtStock.run(Number(item.cantidad), Number(item.productoId));
-          }
-        }
+
       }
 
       const nuevoApartado = {
@@ -101,6 +106,9 @@ export class ApartadoService {
 
     } catch (error) {
       console.error('Error en ApartadoService.crearApartado:', error);
+      if (/producto no disponible|cantidad o producto inválido/i.test(error.message || '')) {
+        return Result.fail(error.message);
+      }
       return Result.fail('Error interno al crear el apartado.');
     }
   }

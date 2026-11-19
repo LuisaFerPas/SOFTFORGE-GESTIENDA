@@ -5,7 +5,8 @@ export class ApartadoController {
 
   async crear(req, res) {
     try {
-      const datos = req.body;
+      // El usuario que reserva siempre proviene del JWT, no de datos enviados por el cliente.
+      const datos = { ...(req.body ?? {}), usuarioId: req.user?.id };
       const resultado = await this.apartadoService.crearApartado(datos);
 
       if (resultado.isFailure) {

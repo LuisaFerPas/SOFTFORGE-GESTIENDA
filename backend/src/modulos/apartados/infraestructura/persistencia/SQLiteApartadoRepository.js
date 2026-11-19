@@ -44,9 +44,10 @@ export class SQLiteApartadoRepository extends IApartadoRepository {
    * @param {import('../../dominio/Apartado.js').Apartado} apartado
    * @returns {Promise<number>} ID asignado al nuevo apartado.
    */
-  async guardar(apartado) {
+  async guardar(apartado, { reservarStock = false } = {}) {
     const db = this.db;
-    db.exec('BEGIN TRANSACTION');
+    // BEGIN IMMEDIATE serializa escritores: no permite dos reservas sobre el mismo stock.
+    db.exec('BEGIN IMMEDIATE TRANSACTION');
 
     try {
       const codigoFinal = apartado.codigo || this._generarSiguienteCodigo();
@@ -91,6 +92,30 @@ export class SQLiteApartadoRepository extends IApartadoRepository {
             prod.precioUnitario,
             prod.subtotal
           );
+        }
+      }
+
+      // La reserva y todos los INSERT forman una sola transacción. Esta opción
+      // se activa desde ApartadoService; otros usos del repositorio permanecen compatibles.
+      if (reservarStock) {
+        const descontar = db.prepare(`
+          UPDATE products SET stock_actual = stock_actual - ?
+          WHERE id = ? AND activo = 1 AND stock_actual >= ?
+        `);
+        const consultar = db.prepare('SELECT nombre, stock_actual FROM products WHERE id = ?');
+        for (const item of apartado.productos || []) {
+          const cantidad = Number(item.cantidad);
+          const id = Number(item.productoId);
+          if (!Number.isSafeInteger(cantidad) || cantidad <= 0 ||
+              !Number.isSafeInteger(id) || id <= 0) {
+            throw new Error('Cantidad o producto inválido para reservar.');
+          }
+          const resultado = descontar.run(cantidad, id, cantidad);
+          if (resultado.changes !== 1) {
+            const existente = consultar.get(id);
+            const nombre = existente?.nombre || `#${id}`;
+            throw new Error(`Producto no disponible: "${nombre}". Revisa las existencias y vuelve a intentar.`);
+          }
         }
       }
 

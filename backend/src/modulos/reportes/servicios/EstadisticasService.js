@@ -71,6 +71,59 @@ export class EstadisticasService {
     }
   }
 
+  /** HU-0903.2: Resumen de ingresos, costo estimado y margen por período.
+   * Importante: el costo se estima con el costo_compra ACTUAL, no histórico.
+   * Se excluyen los abonos de apartados para evitar tratarlos como ventas.
+   */
+  async consultarResumenFinanciero(periodo = 'MES') {
+    const normalizado = String(periodo).toUpperCase().trim();
+    if (!['DIA', 'SEMANA', 'MES', 'AÑO'].includes(normalizado)) {
+      throw new RangeError('El período debe ser DIA, SEMANA, MES o AÑO.');
+    }
+    const fechas = {
+      DIA: "date('now', '-5 hours')",
+      SEMANA: "date('now', '-5 hours', '-6 days')",
+      MES: "date('now', '-5 hours', 'start of month')",
+      AÑO: "date('now', '-5 hours', 'start of year')"
+    };
+    const inicio = this.db.prepare(`SELECT ${fechas[normalizado]} AS fecha`).get().fecha;
+    const total = this.db.prepare(`
+      SELECT COUNT(*) AS numeroTransacciones, COALESCE(SUM(total),0) AS ingresosBrutos
+      FROM sales WHERE date(created_at, '-5 hours') >= ?
+    `).get(inicio);
+    const costos = this.db.prepare(`
+      SELECT COALESCE(SUM(si.cantidad * COALESCE(p.costo_compra,0)),0) AS costoProductos
+      FROM sale_items si
+      JOIN sales s ON s.id = si.venta_id
+      JOIN products p ON p.id = si.producto_id
+      WHERE date(s.created_at, '-5 hours') >= ?
+    `).get(inicio);
+    const categorias = this.db.prepare(`
+      SELECT COALESCE(p.categoria,'Sin categoría') AS categoria,
+        COALESCE(SUM(si.subtotal),0) AS ingresos,
+        COALESCE(SUM(si.cantidad * COALESCE(p.costo_compra,0)),0) AS costos
+      FROM sale_items si JOIN sales s ON s.id = si.venta_id
+      JOIN products p ON p.id = si.producto_id
+      WHERE date(s.created_at, '-5 hours') >= ?
+      GROUP BY p.categoria ORDER BY ingresos DESC
+    `).all(inicio).map(row => ({
+      categoria: row.categoria,
+      ingresos: Number(row.ingresos),
+      costos: Number(row.costos),
+      utilidad: Math.round((Number(row.ingresos) - Number(row.costos))*100)/100
+    }));
+    const ingresosBrutos = Math.round(Number(total.ingresosBrutos)*100)/100;
+    const costoProductos = Math.round(Number(costos.costoProductos)*100)/100;
+    return {
+      periodo: normalizado, fechaInicio: inicio,
+      numeroTransacciones: Number(total.numeroTransacciones),
+      ingresosBrutos, costoProductos,
+      utilidadEstimada: Math.round((ingresosBrutos-costoProductos)*100)/100,
+      porCategoria: categorias,
+      advertencia: 'Utilidad bruta estimada usando costos actuales. No incluye gastos, impuestos ni costos históricos.'
+    };
+  }
+
   async obtenerResumenVentasPeriodo(periodo) { /* TODO */ }
   async obtenerGananciaPorProducto() { /* TODO: (P.Venta - P.Compra) * Cantidad */ }
   async obtenerVentasPorCategoria() { /* TODO */ }
