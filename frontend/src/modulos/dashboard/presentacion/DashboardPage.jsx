@@ -6,12 +6,21 @@ import { TarjetasKPI } from './TarjetasKPI';
 import { PanelStockBajo } from './PanelStockBajo';
 import { PanelVentasRecientes } from './PanelVentasRecientes';
 import { useAlertasStock } from '../hooks/useAlertasStock';
+import { useDashboardData } from '../hooks/useDashboardData';
 import './dashboardResponsiveCards.css';
 
 export function DashboardPage() {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { alertas, cargando, error } = useAlertasStock(isAdmin);
+  const { alertas, cargando: alertasCargando, error: alertasError } = useAlertasStock(isAdmin);
+  const {
+    cargando,
+    ventasHoy,
+    gananciaEstimada,
+    apartadosActivos,
+    ventasRecientes,
+    error: dashboardError
+  } = useDashboardData();
 
   const today = new Date();
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -53,13 +62,25 @@ export function DashboardPage() {
         )}
       </div>
 
-      {/* Grid de Tarjetas KPI */}
-      <TarjetasKPI alertas={alertas} alertasCargando={cargando} alertasError={error} />
+      {/* Grid de Tarjetas KPI con datos reales */}
+      <TarjetasKPI
+        ventasHoy={ventasHoy}
+        gananciaEstimada={gananciaEstimada}
+        apartadosActivos={apartadosActivos}
+        cargando={cargando}
+        alertas={alertas}
+        alertasCargando={alertasCargando}
+        alertasError={alertasError}
+      />
 
       {/* Paneles Inferiores: Stock bajo (solo admin) y Ventas recientes */}
       <section className={`bottom-grid dm-home-panels ${isAdmin ? 'dm-home-panels--admin' : ''}`}>
-        {isAdmin && <PanelStockBajo alertas={alertas} cargando={cargando} error={error} />}
-        <PanelVentasRecientes />
+        {isAdmin && <PanelStockBajo alertas={alertas} cargando={alertasCargando} error={alertasError} />}
+        <PanelVentasRecientes
+          ventas={ventasRecientes}
+          cargando={cargando}
+          error={dashboardError}
+        />
       </section>
     </div>
   );

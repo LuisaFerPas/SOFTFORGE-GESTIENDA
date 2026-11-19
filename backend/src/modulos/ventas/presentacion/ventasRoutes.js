@@ -9,6 +9,7 @@ export function crearVentasRoutes(ventaController) {
   router.post('/', (req, res) => ventaController.crearVenta(req, res));
   router.post('/facturas', (req, res) => ventaController.crearFactura(req, res));
   router.get('/pagos-del-dia', (req, res) => ventaController.verPagosDelDia(req, res));
+  router.get('/recientes', (req, res) => ventaController.obtenerVentasRecientes(req, res));
   router.post('/facturas/:consecutivo/reimprimir', (req, res) => ventaController.reimprimirFactura(req, res));
   
   // HU-0302: Búsqueda reactiva por nombre (antes de :codigo para evitar colisión de ruta)

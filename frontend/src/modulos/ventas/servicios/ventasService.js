@@ -68,6 +68,14 @@ export async function reimprimirFactura(consecutivo) {
   });
 }
 
+/**
+ * Consulta las ventas más recientes con sus productos y vendedor para el Dashboard.
+ * @param {number} [limite=5]
+ */
+export async function consultarVentasRecientesApi(limite = 5) {
+  return apiFetch(`/ventas/recientes?limite=${encodeURIComponent(limite)}`);
+}
+
 /** HU-0404 Fase A: corrige el nombre del cliente de una factura emitida. */
 export async function editarFactura(consecutivo, { nombreCliente } = {}) {
   if (typeof consecutivo !== 'string') {

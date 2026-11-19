@@ -257,4 +257,59 @@ export class VentaController {
       }
     });
   }
+
+  /**
+   * HU-0303 / Dashboard: Consulta las ventas más recientes con sus productos y vendedor.
+   * GET /api/ventas/recientes?limite=5
+   */
+  async obtenerVentasRecientes(req, res) {
+    try {
+      const limite = Math.min(Math.max(Number(req.query.limite) || 5, 1), 20);
+      if (!this.db) {
+        return res.status(200).json({ success: true, data: [] });
+      }
+      const filas = this.db.prepare(`
+        SELECT 
+          s.id,
+          s.total,
+          s.medio_pago AS medioPago,
+          s.created_at AS fechaHora,
+          time(s.created_at, '-5 hours') AS hora,
+          COALESCE(u.username, 'Vendedor') AS vendedor,
+          f.consecutivo AS facturaConsecutivo,
+          (
+            SELECT GROUP_CONCAT(COALESCE(p.nombre, 'Producto') || ' x' || si.cantidad, ', ')
+            FROM sale_items si
+            LEFT JOIN products p ON p.id = si.producto_id
+            WHERE si.venta_id = s.id
+          ) AS itemsResumen
+        FROM sales s
+        LEFT JOIN users u ON u.id = s.usuario_id
+        LEFT JOIN facturas f ON f.venta_id = s.id
+        WHERE COALESCE(s.estado, 'COMPLETADA') <> 'ANULADA'
+        ORDER BY s.id DESC
+        LIMIT ?
+      `).all(limite);
+
+      return res.status(200).json({
+        success: true,
+        data: filas.map(f => ({
+          id: f.id,
+          total: Number(f.total),
+          medioPago: f.medioPago,
+          fechaHora: f.fechaHora,
+          hora: f.hora ? f.hora.slice(0, 5) : (f.fechaHora ? f.fechaHora.slice(11, 16) : ''),
+          vendedor: f.vendedor,
+          facturaConsecutivo: f.facturaConsecutivo || null,
+          itemsResumen: f.itemsResumen || `Venta #${f.id}`
+        }))
+      });
+    } catch (error) {
+      console.error('[Ventas] Error al consultar ventas recientes:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'No fue posible consultar las ventas recientes.'
+      });
+    }
+  }
 }

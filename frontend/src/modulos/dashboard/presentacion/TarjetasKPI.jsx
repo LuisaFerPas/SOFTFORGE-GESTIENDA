@@ -1,8 +1,17 @@
 import React from 'react';
 import { ShoppingCart, TrendingUp, AlertTriangle, FileText } from 'lucide-react';
 import { useAuth } from '../../../compartido/contexto/AuthContext';
+import { formatCOP } from '../../inventario/utilidades/formatoMoneda.js';
 
-export function TarjetasKPI({ alertas = [], alertasCargando = false, alertasError = '' }) {
+export function TarjetasKPI({
+  ventasHoy = { total: 0, transacciones: 0 },
+  gananciaEstimada = { total: 0, margenTexto: '' },
+  apartadosActivos = { cantidad: 0, totalValor: 0 },
+  cargando = false,
+  alertas = [],
+  alertasCargando = false,
+  alertasError = ''
+}) {
   const { isAdmin } = useAuth();
 
   return (
@@ -12,10 +21,10 @@ export function TarjetasKPI({ alertas = [], alertasCargando = false, alertasErro
         <div className="kpi-icon-pill" style={{ backgroundColor: '#FFF2E8', color: '#FF6600' }}>
           <ShoppingCart size={22} />
         </div>
-        <div className="kpi-value">$487.500</div>
+        <div className="kpi-value">{cargando ? '...' : formatCOP.format(ventasHoy.total || 0)}</div>
         <div className="kpi-label">Ventas hoy</div>
         <div style={{ fontSize: '0.78rem', color: '#9A7558', marginTop: '2px' }}>
-          23 transacciones
+          {cargando ? 'Consultando...' : `${ventasHoy.transacciones || 0} ${(ventasHoy.transacciones || 0) === 1 ? 'transacción' : 'transacciones'}`}
         </div>
       </div>
 
@@ -25,10 +34,10 @@ export function TarjetasKPI({ alertas = [], alertasCargando = false, alertasErro
           <div className="kpi-icon-pill" style={{ backgroundColor: '#FFF9E6', color: '#D97706' }}>
             <TrendingUp size={22} />
           </div>
-          <div className="kpi-value">$142.200</div>
+          <div className="kpi-value">{cargando ? '...' : formatCOP.format(gananciaEstimada.total || 0)}</div>
           <div className="kpi-label">Ganancia estimada</div>
-          <div style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-            ↑ 12% vs ayer
+          <div style={{ fontSize: '0.78rem', color: (gananciaEstimada.total || 0) > 0 ? '#059669' : '#6B7280', fontWeight: 600, marginTop: '2px' }}>
+            {cargando ? 'Consultando...' : (gananciaEstimada.margenTexto || 'Sin ventas hoy')}
           </div>
         </div>
       )}
@@ -52,10 +61,12 @@ export function TarjetasKPI({ alertas = [], alertasCargando = false, alertasErro
         <div className="kpi-icon-pill" style={{ backgroundColor: '#F3E8FF', color: '#7E22CE' }}>
           <FileText size={22} />
         </div>
-        <div className="kpi-value" style={{ color: '#7E22CE' }}>4 pendientes</div>
+        <div className="kpi-value" style={{ color: '#7E22CE' }}>
+          {cargando ? '...' : `${apartadosActivos.cantidad || 0} ${(apartadosActivos.cantidad || 0) === 1 ? 'pendiente' : 'pendientes'}`}
+        </div>
         <div className="kpi-label">Apartados activos</div>
         <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: '2px' }}>
-          Valor: $236.000
+          {cargando ? 'Consultando...' : `Valor: ${formatCOP.format(apartadosActivos.totalValor || 0)}`}
         </div>
       </div>
     </section>
